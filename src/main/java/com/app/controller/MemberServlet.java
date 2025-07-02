@@ -1,6 +1,7 @@
 package com.app.controller;
 
 import com.app.dao.MemberDAO;
+import com.app.exception.ErrorException;
 import com.app.exception.MemberNotFoundException;
 import com.app.model.Member;
 import com.app.service.MemberService;
@@ -41,15 +42,17 @@ public class MemberServlet extends HttpServlet {
             int id;
             String idStr = getPath.substring(1);
             id = Integer.parseInt(idStr);
-            Member member = memberService.getMemberByID(id);
-            if(member != null){
-                Gson gson = new Gson();
+            Gson gson = new Gson();
+            try{
+                Member member = memberService.getMemberByID(id);
                 String json = gson.toJson(member);
                 resp.setContentType("application/json");
                 resp.getWriter().write(json);
-            }else{
+            }catch (MemberNotFoundException e){
+                ErrorException error = new ErrorException(e.getMessage(), 404);
+                String errorJson = gson.toJson(error);
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().write("Not Found");
+                resp.getWriter().write(errorJson);
             }
         }
     }
@@ -84,10 +87,30 @@ public class MemberServlet extends HttpServlet {
             String json = gson.toJson(memberTemp);
             resp.getWriter().write(json);
         }catch (MemberNotFoundException e){
+            ErrorException error = new ErrorException(e.getMessage(), 404);
+            String errorJson = gson.toJson(error);
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(e.getMessage());
+            resp.getWriter().write(errorJson);
         }
 
+    }
+
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String path = req.getPathInfo();
+        String idStr = path.substring(1);
+        int id = Integer.parseInt(idStr);
+        Gson gson = new Gson();
+        try{
+            this.memberService.deleteMember(id);
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json");
+            resp.getWriter().write("Deleted Successfully");
+        }catch (MemberNotFoundException e){
+            ErrorException error = new ErrorException(e.getMessage(), 404);
+            String errorJson = gson.toJson(error);
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().write(errorJson);
+        }
     }
 
 

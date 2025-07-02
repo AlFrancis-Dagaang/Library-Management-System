@@ -15,6 +15,7 @@ public class MemberDAO {
     public MemberDAO(DBConnection dbConnection) {
         this.db = dbConnection;
     }
+
     public Member getMemberByID(int id) {
         String sql = "SELECT *FROM member where id = ?";
         try(Connection conn = this.db.getConnection()){
@@ -22,7 +23,6 @@ public class MemberDAO {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if(rs.next()) {
-                Member member = new Member();
                 int memberID = rs.getInt("id");
                 String type = rs.getString("type");
                 int numberBookIssued = rs.getInt("number_book_issued");
@@ -127,6 +127,20 @@ public class MemberDAO {
         }catch (SQLException e) {
             throw new RuntimeException("udpateMemberSQLException Error: " + e.getMessage());
         }
+    }
+
+    public boolean deleteMember(int id) {
+        String sql = "DELETE FROM member WHERE id = ?";
+        try(Connection conn = this.db.getConnection()){
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        }catch (SQLException e) {
+            throw new RuntimeException("deleteMemberSQLException Error: " + e.getMessage());
+        }
+
+
     }
 
 

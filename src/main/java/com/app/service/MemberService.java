@@ -38,6 +38,14 @@ public class MemberService {
         return temp;
     }
 
+    public void deleteMember(int id){
+        if(memberDAO.deleteMember(id)){
+            return;
+        }else{
+            throw new MemberNotFoundException("Deletion failed or member with ID " + id + " not found.");
+        }
+    }
+
 
 
 
