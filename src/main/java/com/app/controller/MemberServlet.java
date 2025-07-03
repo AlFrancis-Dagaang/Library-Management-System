@@ -1,11 +1,10 @@
 package com.app.controller;
 
-import com.app.dao.MemberDAO;
+import com.app.config.AppConfig;
 import com.app.exception.ErrorException;
 import com.app.exception.MemberNotFoundException;
 import com.app.model.Member;
 import com.app.service.MemberService;
-import com.app.util.DBConnection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
@@ -24,9 +23,7 @@ public class MemberServlet extends HttpServlet {
 
     @Override
     public void init(){
-        DBConnection db = new DBConnection();
-        MemberDAO mdao = new MemberDAO(db);
-        memberService = new MemberService(mdao);
+        memberService = AppConfig.getMemberService();
     }
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
