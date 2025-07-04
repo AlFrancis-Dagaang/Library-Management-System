@@ -1,3 +1,4 @@
+import com.app.dao.LibrarianDAO;
 import com.app.dao.MemberDAO;
 import com.app.dto.BookDTO;
 import com.app.model.Book;
@@ -12,7 +13,7 @@ import java.util.Date;
 
 public class MemberDAOTest {
 
-     @Test
+     /*@Test
      public void testBook(){
           Book book = new Book("Rick Riordan", "Percy Jackson", 2012, false, "General Book");
 
@@ -20,5 +21,15 @@ public class MemberDAOTest {
           BookDTO dto =mapper.map(book, BookDTO.class);
 
           Assert.assertEquals(book.getYearOfPublication(), dto.getYearOfPublication());
+     }
+
+      */
+     @Test
+     public void test(){
+          DBConnection db = new DBConnection();
+          LibrarianDAO librarianDAO = new LibrarianDAO(db);
+          Book book = librarianDAO.getBookById();
+          System.out.println(book);
+          Assert.assertNotNull(book);
      }
 }

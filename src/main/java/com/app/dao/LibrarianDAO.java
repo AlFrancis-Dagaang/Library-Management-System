@@ -1,6 +1,7 @@
 package com.app.dao;
 
 import com.app.model.Admin;
+import com.app.model.Book;
 import com.app.util.DBConnection;
 
 import java.sql.Connection;
@@ -10,8 +11,9 @@ import java.sql.SQLException;
 
 public class LibrarianDAO {
     private DBConnection db;
-    public LibrarianDAO() {}
+    private BookDAO bookDAO;
     public LibrarianDAO(DBConnection db) {
+        this.bookDAO = new BookDAO(db);
         this.db = db;
     }
 
@@ -29,5 +31,9 @@ public class LibrarianDAO {
 
         }
         return null;
+    }
+
+    public Book getBookById(){
+        return bookDAO.getBookById(2);
     }
 }
