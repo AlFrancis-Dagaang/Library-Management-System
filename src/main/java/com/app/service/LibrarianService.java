@@ -112,8 +112,4 @@ public class LibrarianService {
             throw new TransactionNotFoundException("Member transaction not found or Member transaction is empty");
         }
     }
-
-
-
-
 }

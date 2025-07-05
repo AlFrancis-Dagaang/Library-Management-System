@@ -15,10 +15,11 @@ public class MemberService {
     }
 
     public Member getMemberByID(int id){
-         if(memberDAO.getMemberByID(id)!=null){
-             return memberDAO.getMemberByID(id);
+        Member tempMember = memberDAO.getMemberByID(id);
+         if(tempMember!=null){
+             return tempMember;
          }else{
-             throw new MemberNotFoundException("Member not found");
+             throw new MemberNotFoundException("member not found");
          }
     }
 

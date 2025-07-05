@@ -5,6 +5,7 @@ import com.app.exception.ErrorException;
 import com.app.exception.MemberNotFoundException;
 import com.app.model.Member;
 import com.app.service.MemberService;
+import com.app.util.JsonUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
@@ -17,7 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet ("/v1/members/*")
+@WebServlet ("/v1/lms/*")
 public class MemberServlet extends HttpServlet {
     private MemberService memberService;
 
@@ -26,48 +27,44 @@ public class MemberServlet extends HttpServlet {
         memberService = AppConfig.getMemberService();
     }
 
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String getPath = req.getPathInfo();
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo();
+        String[]paths = path.split("/");
 
-        if(getPath == null|| getPath.equals("/")){ //Get All Members
-            Gson gson = new Gson();
+        if(path.equals("/members")){ //--------> /members
             List<Member> members = memberService.getAllMembers();
-            String json = gson.toJson(members);
-            resp.setContentType("application/json");
-            resp.getWriter().write(json);
-        }else{
-            int id;
-            String idStr = getPath.substring(1);
-            id = Integer.parseInt(idStr);
-            Gson gson = new Gson();
+            JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, members);
+
+        }else if(paths[1].equals("members") && paths.length == 3){//----------> /members/{id}
+            int memberId = Integer.parseInt(paths[2]);
+
             try{
-                Member member = memberService.getMemberByID(id);
-                String json = gson.toJson(member);
-                resp.setContentType("application/json");
-                resp.getWriter().write(json);
+                Member member = memberService.getMemberByID(memberId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, member);
             }catch (MemberNotFoundException e){
-                ErrorException error = new ErrorException(e.getMessage(), 404);
-                String errorJson = gson.toJson(error);
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().write(errorJson);
+                JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+            }catch (RuntimeException e){
+                JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }
         }
     }
-    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
 
-        if(path.equals("/createMember") ){
-            BufferedReader reader = req.getReader();
-            Member member = new Gson().fromJson(reader, Member.class);
-            member.initializeDefault();
-            String json = new Gson().toJson(memberService.addMember(member));
-            resp.setStatus(HttpServletResponse.SC_CREATED);
-            resp.setContentType("application/json");
-            resp.getWriter().write(json);
+        try{
+            if(path.equals("/members") ){ //-----------> /members "Create Member"
+                Member member = JsonUtil.parse(req, Member.class);
+                member.initializeDefault();
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, this.memberService.addMember(member));
+            }
+        } catch (RuntimeException e) {
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
-    public void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         BufferedReader reader = req.getReader();
         Gson gson = new GsonBuilder()
                 .setDateFormat("MMM d, yyyy") // this matches "Jul 1, 2025"
@@ -92,7 +89,7 @@ public class MemberServlet extends HttpServlet {
 
     }
 
-    public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
         String idStr = path.substring(1);
         int id = Integer.parseInt(idStr);

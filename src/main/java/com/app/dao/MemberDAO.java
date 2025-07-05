@@ -41,7 +41,8 @@ public class MemberDAO {
                 return getMember;
             }
         } catch (SQLException e) {
-            throw new RuntimeException("getMemberByIdSQLException Error: " + e.getMessage());
+            System.err.println("SQLException in getMemberByID: " + e.getMessage());
+            throw new RuntimeException("Database error in getMemberByID()");
         }
         return null;
     }
@@ -61,17 +62,16 @@ public class MemberDAO {
 
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
-            int memberID;
+            int memberId;
             if (rs.next()) {
-                memberID = rs.getInt(1);
-            } else {
-                throw new SQLException("Creating member failed, no ID obtained.");
+                memberId = rs.getInt(1);
+                return getMemberByID(memberId);
+            }else {
+                throw new SQLException("Failed to retrieve generated member ID.");
             }
-
-            return getMemberByID(memberID);
-
         } catch (SQLException e) {
-            throw new RuntimeException("addMemberSQLException Error: " + e.getMessage());
+            System.err.println("SQLException in addMember: " + e.getMessage());
+            throw new RuntimeException("Database error in addMember()");
         }
     }
 

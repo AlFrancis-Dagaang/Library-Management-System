@@ -81,7 +81,7 @@ public class LibrarianServlet extends HttpServlet {
                 response.setContentType("application/json");
                 response.getWriter().println("unauthorized");
             }
-        }else if(pathParts.length == 3 && pathParts[2].equals("details")){ // GET /{id}/details "get transaction details"
+        }else if(pathParts.length == 3 && pathParts[2].equals("details")){ // GET /{id}/details "Get a transaction details"
             int id = Integer.parseInt(pathParts[1]);
             try{
                 TransactionDetailsDTO transactionDetailsDTO = this.librarianService.getTransactionDetails(id);
@@ -95,7 +95,7 @@ public class LibrarianServlet extends HttpServlet {
                 response.getWriter().println(gson.toJson(errorException));
             }
 
-        } else if (pathParts.length == 4 && pathParts[1].equals("member")&& pathParts[3].equals("transactions")) {// GET /member/{id}/details "get all transaction details from a member";
+        } else if (pathParts.length == 4 && pathParts[1].equals("member")&& pathParts[3].equals("transactions")) {// GET /member/{id}/details "get all transaction made from a member";
             int id = Integer.parseInt(pathParts[2]);
             try{
                 List<Transaction> transactions = this.librarianService.getAllTransactions(id);
@@ -109,7 +109,7 @@ public class LibrarianServlet extends HttpServlet {
                 ErrorException errorException = new ErrorException(e.getMessage(), HttpServletResponse.SC_NOT_FOUND);
                 response.getWriter().println(gson.toJson(errorException));
             }
-        }  else if(pathParts.length == 2){ // GET /{id}
+        }  else if(pathParts.length == 2){ // GET /{id} "Get transaction by id"
             int id = Integer.parseInt(pathParts[1]);
             try{
                 Transaction transaction = this.librarianService.getTransactionById(id);
