@@ -98,6 +98,10 @@ public class Member {
         this.memberId = memberId;
     }
 
+    public void addBookIssued() {
+        numberOfBookIssued++;
+    }
+
     @Override
     public String toString() {
         return "Member{" +

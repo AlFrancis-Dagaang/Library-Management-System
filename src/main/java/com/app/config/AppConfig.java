@@ -20,6 +20,6 @@ public class AppConfig {
     }
 
     public static LibrarianService getLibrarianService(){
-        return new LibrarianService(new LibrarianDAO(dbConnection));
+        return new LibrarianService(new LibrarianDAO(dbConnection), new BookDAO(dbConnection), new MemberDAO(dbConnection));
     }
 }

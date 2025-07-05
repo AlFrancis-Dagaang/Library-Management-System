@@ -1,26 +1,30 @@
 package com.app.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
-public class Transaction {
+public class TransactionDetailsDTO {
     private int transactionId;
-    private int memberId;
-    private int bookId;
+    private String memberName;
+    private String bookTitle;
+    private BigDecimal bookPrice;
     private Date dateOfIssue;
     private Date dueDate;
     private Date returnDate;
     private String status;
 
-    public Transaction() {}
-    public Transaction(int transactionId, int memberId, int bookId, Date dateOfIssue, Date dateOfDue, Date returnDate, String status) {
+    public TransactionDetailsDTO(){}
+    public TransactionDetailsDTO(int transactionId, String memberName, BigDecimal bookPrice, String bookTitle, Date dateOfIssue, Date dueDate, Date returnDate, String status) {
         this.transactionId = transactionId;
-        this.memberId = memberId;
-        this.bookId = bookId;
+        this.memberName = memberName;
+        this.bookPrice = bookPrice;
+        this.bookTitle = bookTitle;
         this.dateOfIssue = dateOfIssue;
+        this.dueDate = dueDate;
         this.returnDate = returnDate;
-        this.dueDate = dateOfDue;
         this.status = status;
     }
+
     public int getTransactionId() {
         return transactionId;
     }
@@ -29,20 +33,28 @@ public class Transaction {
         this.transactionId = transactionId;
     }
 
-    public int getBookId() {
-        return bookId;
+    public String getMemberName() {
+        return memberName;
     }
 
-    public void setBookId(int bookId) {
-        this.bookId = bookId;
+    public void setMemberName(String memberName) {
+        this.memberName = memberName;
     }
 
-    public int getMemberId() {
-        return memberId;
+    public String getBookTitle() {
+        return bookTitle;
     }
 
-    public void setMemberId(int memberId) {
-        this.memberId = memberId;
+    public void setBookTitle(String bookTitle) {
+        this.bookTitle = bookTitle;
+    }
+
+    public BigDecimal getBookPrice() {
+        return bookPrice;
+    }
+
+    public void setBookPrice(BigDecimal bookPrice) {
+        this.bookPrice = bookPrice;
     }
 
     public Date getDateOfIssue() {
@@ -77,3 +89,5 @@ public class Transaction {
         this.status = status;
     }
 }
+
+

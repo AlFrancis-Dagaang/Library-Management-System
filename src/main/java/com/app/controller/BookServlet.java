@@ -59,7 +59,7 @@ public class BookServlet extends HttpServlet {
         Gson gson = new Gson();
         if(getPath == null|| getPath.equals("/")){
             try{
-                List<BookDTO> books = this.bookService.getAllBooks();
+                List<Book> books = this.bookService.getAllBooks();
                 String json = gson.toJson(books);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.setContentType("application/json");
@@ -77,10 +77,11 @@ public class BookServlet extends HttpServlet {
             String idStr = getPath.substring(1);
             id = Integer.parseInt(idStr);
             try{
-                BookDTO bookDTO = bookService.getBookById(id);
-                String json = gson.toJson(bookDTO);
+                Book book = bookService.getBookById(id);
+                String json = gson.toJson(book);
                 response.setContentType("application/json");
                 response.getWriter().write(json);
+
             }catch (BookNotFoundException e){
                 ErrorException error = new ErrorException(e.getMessage(), 404);
                 String errorJson = gson.toJson(error);
@@ -98,11 +99,12 @@ public class BookServlet extends HttpServlet {
         int id = Integer.parseInt(getId);
 
         try{
-            BookDTO bookDTO = this.bookService.updateBook(book, id);
-            String json = gson.toJson(bookDTO);
+            Book updateBook = this.bookService.updateBook(book, id);
+            String json = gson.toJson(updateBook);
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.getWriter().write(json);
+
         }catch (BookNotFoundException e){
             ErrorException error = new ErrorException(e.getMessage(), 404);
             String errorJson = gson.toJson(error);
@@ -117,6 +119,7 @@ public class BookServlet extends HttpServlet {
         String idStr = path.substring(1);
         int id = Integer.parseInt(idStr);
         Gson gson = new Gson();
+
         try{
             this.bookService.deleteBook(id);
             response.setStatus(HttpServletResponse.SC_OK);

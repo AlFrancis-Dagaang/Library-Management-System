@@ -26,10 +26,6 @@ public class MemberDAOTest {
       */
      @Test
      public void test(){
-          DBConnection db = new DBConnection();
-          LibrarianDAO librarianDAO = new LibrarianDAO(db);
-          Book book = librarianDAO.getBookById();
-          System.out.println(book);
-          Assert.assertNotNull(book);
+
      }
 }

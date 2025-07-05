@@ -31,33 +31,30 @@ public class BookService {
         }
 
     }
-    public BookDTO getBookById(int id){
+    public Book getBookById(int id){
         Book book = bookDAO.getBookById(id);
-        ModelMapper modelMapper = MapperUtil.getModelMapper();
 
         if(book != null){
-            return modelMapper.map(book, BookDTO.class);
+            return book;
         }else{
             throw new BookNotFoundException("Book could not be found");
         }
     }
 
-    public List<BookDTO> getAllBooks(){
+    public List<Book> getAllBooks(){
         List<Book> books = bookDAO.getAllBooks();
-        ModelMapper modelMapper = MapperUtil.getModelMapper();
         if(books != null && !books.isEmpty()){
-            List<BookDTO> bookDTOs = books.stream().map(book-> modelMapper.map(book, BookDTO.class)).collect(Collectors.toList());
-            return bookDTOs;
+            return books;
         }else{
             throw new BookNotFoundException("No books found in the database.");
         }
     }
 
-    public BookDTO updateBook(Book book, int id){
+    public Book updateBook(Book book, int id){
         Book newBook = bookDAO.updateBook(book, id);
 
         if(newBook != null){
-            return MapperUtil.getModelMapper().map(newBook, BookDTO.class);
+            return newBook;
         }else{
             throw new BookNotFoundException("Book could not be found");
         }
