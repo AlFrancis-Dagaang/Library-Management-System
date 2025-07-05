@@ -101,10 +101,11 @@ public class MemberDAO {
             }
             return members;
         }catch (SQLException e) {
-            throw new RuntimeException("getAllMembersSQLException Error: " + e.getMessage());
+            System.err.println("SQLException in getAllMembers: " + e.getMessage());
+            throw new RuntimeException("Database error in getAllMembers()");
         }
     }
-    public Member udpateMember(Member member, int id) {
+    public Member updateMember(Member member, int id) {
         String sql = "UPDATE member SET name = ?, address = ?, phone_number = ?, type=?, date_of_membership= ?," +
                 "number_book_issued=?, max_book_limit=? WHERE id = ?";
 
@@ -119,17 +120,19 @@ public class MemberDAO {
             ps.setInt(7, member.getMaxBookLimit());
             ps.setInt(8, id);
             int rowsAffected = ps.executeUpdate();
+
             if (rowsAffected > 0) {
                 return getMemberByID(id);
             }else{
-                return null;
+                throw new SQLException("Failed to update member with id " + id);
             }
         }catch (SQLException e) {
-            throw new RuntimeException("udpateMemberSQLException Error: " + e.getMessage());
+            System.err.println("SQLException in updateMember: " + e.getMessage());
+            throw new RuntimeException("Database error in updateMember()");
         }
     }
 
-    public boolean deleteMember(int id) {
+    public boolean deleteMemberById(int id) {
         String sql = "DELETE FROM member WHERE id = ?";
         try(Connection conn = this.db.getConnection()){
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -137,10 +140,39 @@ public class MemberDAO {
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
         }catch (SQLException e) {
-            throw new RuntimeException("deleteMemberSQLException Error: " + e.getMessage());
+            throw new RuntimeException("Database error in deleteMember: " + e.getMessage());
         }
 
+    }
 
+    public List<Member> sortMembers(String type) {
+        String sql = "SELECT * FROM member where type= ?";
+        List<Member>members = new ArrayList<>();
+        try(Connection con = this.db.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, type);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()) {
+                int memberID = rs.getInt("id");
+                String memberType = rs.getString("type");
+                int numberBookIssued = rs.getInt("number_book_issued");
+                Date dateOfMembership = rs.getDate("date_of_membership");
+                int maxBookLimit = rs.getInt("max_book_limit");
+                String name = rs.getString("name");
+                String address = rs.getString("address");
+                long phoneNumber = rs.getLong("phone_number");
+                Member getMember = new Member (name, address, phoneNumber, memberType );
+                getMember.setMaxBookLimit(maxBookLimit);
+                getMember.setNumberOfBookIssued(numberBookIssued);
+                getMember.setMemberId(memberID);
+                getMember.setDateOfMembership(dateOfMembership);
+                members.add(getMember);
+            }
+            return members;
+        }catch (SQLException e) {
+            System.err.println("SQLException in sortMembersStudent: " + e.getMessage());
+            throw new RuntimeException("Database error in sortMembersStudent()");
+        }
     }
 
 

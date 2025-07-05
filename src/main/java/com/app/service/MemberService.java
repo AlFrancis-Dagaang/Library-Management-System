@@ -19,7 +19,7 @@ public class MemberService {
          if(tempMember!=null){
              return tempMember;
          }else{
-             throw new MemberNotFoundException("member not found");
+             throw new MemberNotFoundException("Member not found");
          }
     }
 
@@ -32,24 +32,28 @@ public class MemberService {
     }
 
     public Member updateMember(Member member, int id){
-        Member temp = this.memberDAO.udpateMember(member,id);
-        if( temp == null){
-            throw new MemberNotFoundException("Cannot update: Member with ID " + id + " not found.");
+        Member tempMember = this.memberDAO.updateMember(member,id);
+        if(tempMember == null){
+            throw new MemberNotFoundException("Member not found");
         }
-        return temp;
+        return tempMember;
     }
 
     public void deleteMember(int id){
-        if(memberDAO.deleteMember(id)){
-            return;
-        }else{
-            throw new MemberNotFoundException("Deletion failed or member with ID " + id + " not found.");
+        boolean deletedSuccessfully = this.memberDAO.deleteMemberById(id);
+        if(!deletedSuccessfully){
+            throw new MemberNotFoundException("Member to be deleted not found");
         }
+
     }
 
-
-
-
-
+    public List<Member> getSortMembers(String type){
+        List <Member> memberList = this.memberDAO.sortMembers(type);
+        if(!memberList.isEmpty()){
+            return memberList;
+        }else{
+            throw new MemberNotFoundException("There is no member with the given:"+type+" type");
+        }
+    }
 
 }

@@ -30,23 +30,31 @@ public class MemberServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
         String[]paths = path.split("/");
+        String typeParam = req.getParameter("type");
 
-        if(path.equals("/members")){ //--------> /members
-            List<Member> members = memberService.getAllMembers();
-            JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, members);
+        try{
+            if(path.equals("/members") && typeParam ==null){ //--------> /members
+                List<Member> members = memberService.getAllMembers();
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, members);
 
-        }else if(paths[1].equals("members") && paths.length == 3){//----------> /members/{id}
-            int memberId = Integer.parseInt(paths[2]);
+            }else if(paths[1].equals("members") && paths.length == 3){//----------> /members/{id}
+                int memberId = Integer.parseInt(paths[2]);
 
-            try{
                 Member member = memberService.getMemberByID(memberId);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, member);
-            }catch (MemberNotFoundException e){
-                JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-            }catch (RuntimeException e){
-                JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+
+            }else if (paths[1].equals("members") && typeParam != null){  //----------> /members?type={type} "Sorting base on member types"
+
+                List<Member> members = this.memberService.getSortMembers(typeParam);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, members);
             }
+
+        }catch (MemberNotFoundException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+
     }
 
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -65,47 +73,47 @@ public class MemberServlet extends HttpServlet {
 
 
     public void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        BufferedReader reader = req.getReader();
-        Gson gson = new GsonBuilder()
-                .setDateFormat("MMM d, yyyy") // this matches "Jul 1, 2025"
-                .create();
-        Member member = gson.fromJson(reader, Member.class);
         String path = req.getPathInfo();
-        String getId = path.substring(1);
-        int id = Integer.parseInt(getId);
+
+        Member member = JsonUtil.parse(req, Member.class);
+        String [] paths = path.split("/");
 
         try{
-            Member memberTemp = this.memberService.updateMember(member, id);
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.setContentType("application/json");
-            String json = gson.toJson(memberTemp);
-            resp.getWriter().write(json);
-        }catch (MemberNotFoundException e){
-            ErrorException error = new ErrorException(e.getMessage(), 404);
-            String errorJson = gson.toJson(error);
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(errorJson);
+            if(paths[1].equals("members") && paths.length == 3){
+                int memberId = Integer.parseInt(paths[2]);
+                Member memberTemp = this.memberService.updateMember(member, memberId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, memberTemp);
+            }
+
+        }catch (MemberNotFoundException e) {
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
     }
 
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
-        String idStr = path.substring(1);
-        int id = Integer.parseInt(idStr);
-        Gson gson = new Gson();
+        String [] paths = path.split("/");
+
         try{
-            this.memberService.deleteMember(id);
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.setContentType("application/json");
-            resp.getWriter().write("Deleted Successfully");
+            if(paths[1].equals("members") && paths.length == 3){// ---------> /members/{id}
+                int memberId = Integer.parseInt(paths[2]);
+                this.memberService.deleteMember(memberId);
+                Member memberTemp = this.memberService.getMemberByID(memberId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, memberTemp);
+            }
+
         }catch (MemberNotFoundException e){
-            ErrorException error = new ErrorException(e.getMessage(), 404);
-            String errorJson = gson.toJson(error);
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(errorJson);
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+
     }
+
+
 
 
 }

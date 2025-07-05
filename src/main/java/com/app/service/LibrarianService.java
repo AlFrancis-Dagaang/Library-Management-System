@@ -53,7 +53,7 @@ public class LibrarianService {
             member.addBookIssued();
             book.setAvailable(false);
 
-            if(memberDAO.udpateMember(member, transaction.getMemberId()) != null && bookDAO.updateBook(book, transaction.getBookId()) !=null){
+            if(memberDAO.updateMember(member, transaction.getMemberId()) != null && bookDAO.updateBook(book, transaction.getBookId()) !=null){
                 return this.librarianDAO.createTransaction(transaction);
             }else{
                 return null;
