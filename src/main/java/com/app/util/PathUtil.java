@@ -1,6 +1,6 @@
 package com.app.util;
 
-public class PathUtils {
+public class PathUtil {
     public static boolean isNumeric(String str) {
         if (str == null) return false;
         try {
