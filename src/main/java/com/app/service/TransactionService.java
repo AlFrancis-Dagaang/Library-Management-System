@@ -2,7 +2,7 @@ package com.app.service;
 
 import com.app.config.LoanPolicyConfig;
 import com.app.dao.BookDAO;
-import com.app.dao.LibrarianDAO;
+import com.app.dao.TransactionDAO;
 import com.app.dao.MemberDAO;
 import com.app.exception.ResourceNotFound;
 import com.app.exception.TransactionNotFoundException;
@@ -11,31 +11,20 @@ import com.app.model.*;
 import java.time.LocalDate;
 import java.util.List;
 
-public class LibrarianService {
-    private LibrarianDAO librarianDAO;
+public class TransactionService {
+    private TransactionDAO librarianDAO;
     private MemberDAO memberDAO;
     private BookDAO bookDAO;
-    public LibrarianService() {}
-    public LibrarianService(LibrarianDAO librarianDAO, BookDAO bookDAO, MemberDAO memberDAO) {
+    public TransactionService() {}
+    public TransactionService(TransactionDAO librarianDAO, BookDAO bookDAO, MemberDAO memberDAO) {
         this.librarianDAO = librarianDAO;
         this.bookDAO = bookDAO;
         this.memberDAO = memberDAO;
     }
 
-    public boolean loginAsAdmin(Admin admin) {
-        Admin tempAdmin = this.librarianDAO.getAdminByUsername(admin.getUsername());
-
-        if(tempAdmin != null && tempAdmin.getPassword().equals(admin.getPassword())) {
-            return true;
-        }
-        return false;
-    }
-
     public Transaction createTransaction(Transaction transaction){
         Book book = this.bookDAO.getBookById(transaction.getBookId());
         Member member = this.memberDAO.getMemberByID(transaction.getMemberId());
-
-        LocalDate localDate = LocalDate.now();
 
         if(!book.isAvailable()){
             throw new IllegalArgumentException("Book is not available");
@@ -46,6 +35,7 @@ public class LibrarianService {
         }
 
         try{
+            LocalDate localDate = LocalDate.now();
             LocalDate dueDate = LoanPolicyConfig.calculateDueDate(book);
             transaction.setDateOfIssue(java.sql.Date.valueOf(localDate));
             transaction.setDueDate(java.sql.Date.valueOf(dueDate));
@@ -53,10 +43,13 @@ public class LibrarianService {
             member.addBookIssued();
             book.setAvailable(false);
 
-            if(memberDAO.updateMember(member, transaction.getMemberId()) != null && bookDAO.updateBook(book, transaction.getBookId()) !=null){
+            Member memberUpdate = memberDAO.updateMember(member, transaction.getMemberId());
+            Book bookUpdate = bookDAO.updateBook(book, transaction.getBookId());
+
+            if(memberUpdate != null &&  bookUpdate!=null){
                 return this.librarianDAO.createTransaction(transaction);
             }else{
-                return null;
+                throw new RuntimeException("Could not update the member and book after creating transaction");
             }
 
         }catch (IllegalArgumentException e){

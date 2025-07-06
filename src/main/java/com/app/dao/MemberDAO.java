@@ -140,6 +140,7 @@ public class MemberDAO {
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
         }catch (SQLException e) {
+            System.err.println("SQLException in deleteMemberById: " + e.getMessage());
             throw new RuntimeException("Database error in deleteMember: " + e.getMessage());
         }
 

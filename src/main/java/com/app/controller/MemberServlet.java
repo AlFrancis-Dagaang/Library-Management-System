@@ -6,6 +6,7 @@ import com.app.exception.MemberNotFoundException;
 import com.app.model.Member;
 import com.app.service.MemberService;
 import com.app.util.JsonUtil;
+import com.app.util.PathUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
@@ -18,7 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet ("/v1/lms/*")
+@WebServlet ("/v1/lms/members/*")
 public class MemberServlet extends HttpServlet {
     private MemberService memberService;
 
@@ -29,22 +30,20 @@ public class MemberServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
-        String[]paths = path.split("/");
+        String[]paths = PathUtil.getPaths(path);
         String typeParam = req.getParameter("type");
 
         try{
-            if(path.equals("/members") && typeParam ==null){ //--------> /members
+            if(path == null || path.isEmpty()){ //--------> "Get all members
                 List<Member> members = memberService.getAllMembers();
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, members);
 
-            }else if(paths[1].equals("members") && paths.length == 3){//----------> /members/{id}
-                int memberId = Integer.parseInt(paths[2]);
-
+            }else if(paths.length==2 && PathUtil.isNumeric(paths[1])){//----------> /{id}
+                int memberId = Integer.parseInt(paths[1]);
                 Member member = memberService.getMemberByID(memberId);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, member);
 
-            }else if (paths[1].equals("members") && typeParam != null){  //----------> /members?type={type} "Sorting base on member types"
-
+            }else if (paths.length==2 && paths[1].equals("sort") && typeParam != null){  //----------> /sort?type={type} "Sorting base on member types"
                 List<Member> members = this.memberService.getSortMembers(typeParam);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, members);
             }
@@ -61,7 +60,7 @@ public class MemberServlet extends HttpServlet {
         String path = req.getPathInfo();
 
         try{
-            if(path.equals("/members") ){ //-----------> /members "Create Member"
+            if(path == null || path.isEmpty() ){ //-----------> /members "Create Member"
                 Member member = JsonUtil.parse(req, Member.class);
                 member.initializeDefault();
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, this.memberService.addMember(member));
@@ -76,11 +75,11 @@ public class MemberServlet extends HttpServlet {
         String path = req.getPathInfo();
 
         Member member = JsonUtil.parse(req, Member.class);
-        String [] paths = path.split("/");
+        String [] paths = PathUtil.getPaths(path);
 
         try{
-            if(paths[1].equals("members") && paths.length == 3){
-                int memberId = Integer.parseInt(paths[2]);
+            if(paths.length==2 && PathUtil.isNumeric(paths[1])){
+                int memberId = Integer.parseInt(paths[1]);
                 Member memberTemp = this.memberService.updateMember(member, memberId);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, memberTemp);
             }
@@ -95,11 +94,11 @@ public class MemberServlet extends HttpServlet {
 
     public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo();
-        String [] paths = path.split("/");
+        String [] paths = PathUtil.getPaths(path);
 
         try{
-            if(paths[1].equals("members") && paths.length == 3){// ---------> /members/{id}
-                int memberId = Integer.parseInt(paths[2]);
+            if(paths.length==2 && PathUtil.isNumeric(paths[1])){// ---------> /members/{id}
+                int memberId = Integer.parseInt(paths[1]);
                 this.memberService.deleteMember(memberId);
                 Member memberTemp = this.memberService.getMemberByID(memberId);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, memberTemp);

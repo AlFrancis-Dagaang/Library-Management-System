@@ -7,7 +7,9 @@ import com.app.exception.TransactionNotFoundException;
 import com.app.model.Admin;
 import com.app.model.Transaction;
 import com.app.model.TransactionDetailsDTO;
-import com.app.service.LibrarianService;
+import com.app.service.TransactionService;
+import com.app.util.JsonUtil;
+import com.app.util.PathUtil;
 import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,47 +22,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/v1/librarian/*")
-public class LibrarianServlet extends HttpServlet {
-    private LibrarianService librarianService;
+@WebServlet("/v1/lms/transactions/*")
+public class TransactionServlet extends HttpServlet {
+    private TransactionService transactionService;
 
     public void init(){
-        this.librarianService = AppConfig.getLibrarianService();
+        this.transactionService  = AppConfig.getTransactionService();
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getPathInfo();
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String path = req.getPathInfo();
 
-        if(path.equals("/login")){
-            BufferedReader reader = request.getReader();
-            Gson gson = new Gson();
-            Admin admin = gson.fromJson(reader, Admin.class);
-            if(this.librarianService.loginAsAdmin(admin)){
-                HttpSession session = request.getSession();
-                session.setAttribute("admin", admin);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println("login successful");
-            }else{
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().println("username or password incorrect");
+        try{
+            if(path == null || path.isEmpty()){
+                Transaction transaction = JsonUtil.parse(req, Transaction.class);
+                transaction = this.transactionService.createTransaction(transaction);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, transaction);
             }
-        }else if(path.equals("/createTransaction")){
-            BufferedReader reader = request.getReader();
-            Gson gson = new Gson();
-            Transaction transaction = gson.fromJson(reader, Transaction.class);
-            try{
-                transaction = this.librarianService.createTransaction(transaction);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println(gson.toJson(transaction));
-            }catch (IllegalArgumentException e){
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.setContentType("application/json");
-                ErrorException errorException = new ErrorException(e.getMessage(), HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().println(gson.toJson(errorException));
-            }
+        }catch (IllegalArgumentException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -84,7 +66,7 @@ public class LibrarianServlet extends HttpServlet {
         }else if(pathParts.length == 3 && pathParts[2].equals("details")){ // GET /{id}/details "Get a transaction details"
             int id = Integer.parseInt(pathParts[1]);
             try{
-                TransactionDetailsDTO transactionDetailsDTO = this.librarianService.getTransactionDetails(id);
+                TransactionDetailsDTO transactionDetailsDTO = this.transactionService.getTransactionDetails(id);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.setContentType("application/json");
                 response.getWriter().println(gson.toJson(transactionDetailsDTO));
@@ -98,7 +80,7 @@ public class LibrarianServlet extends HttpServlet {
         } else if (pathParts.length == 4 && pathParts[1].equals("member")&& pathParts[3].equals("transactions")) {// GET /member/{id}/details "get all transaction made from a member";
             int id = Integer.parseInt(pathParts[2]);
             try{
-                List<Transaction> transactions = this.librarianService.getAllTransactions(id);
+                List<Transaction> transactions = this.transactionService.getAllTransactions(id);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.setContentType("application/json");
                 response.getWriter().println(gson.toJson(transactions));
@@ -112,7 +94,7 @@ public class LibrarianServlet extends HttpServlet {
         }  else if(pathParts.length == 2){ // GET /{id} "Get transaction by id"
             int id = Integer.parseInt(pathParts[1]);
             try{
-                Transaction transaction = this.librarianService.getTransactionById(id);
+                Transaction transaction = this.transactionService.getTransactionById(id);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.setContentType("application/json");
                 response.getWriter().println(gson.toJson(transaction));
@@ -134,7 +116,7 @@ public class LibrarianServlet extends HttpServlet {
         Transaction transaction = gson.fromJson(reader, Transaction.class);
 
         try{
-            Transaction tempTransaction = this.librarianService.updateTransaction(transaction, id);
+            Transaction tempTransaction = this.transactionService.updateTransaction(transaction, id);
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.getWriter().println(gson.toJson(tempTransaction));
@@ -152,7 +134,7 @@ public class LibrarianServlet extends HttpServlet {
         int id = Integer.parseInt(idStr);
         Gson gson = new Gson();
         try{
-            if(this.librarianService.deleteTransaction(id)){
+            if(this.transactionService.deleteTransaction(id)){
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.setContentType("application/json");
                 response.getWriter().println(gson.toJson("transaction deleted successfully"));

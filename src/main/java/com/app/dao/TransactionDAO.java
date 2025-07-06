@@ -1,7 +1,6 @@
 package com.app.dao;
 
 import com.app.model.Admin;
-import com.app.model.Book;
 import com.app.model.Transaction;
 import com.app.model.TransactionDetailsDTO;
 import com.app.util.DBConnection;
@@ -12,30 +11,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class LibrarianDAO {
+public class TransactionDAO {
     private DBConnection db;
-    public LibrarianDAO(DBConnection db) {
+    public TransactionDAO(DBConnection db) {
         this.db = db;
     }
 
-    public Admin getAdminByUsername(String username){
-        String sql = "select * from admin where username=?";
-        try(Connection con = this.db.getConnection()){
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, username);
-            ResultSet rs = ps.executeQuery();
-            if(rs.next()){
-                return new Admin(rs.getString("username"), rs.getString("password"));
-            }
-        }catch (SQLException e){
-            System.out.println("getAdminByUsernameSQLException Error:" + e.getMessage());
-
-        }
-        return null;
-    }
-
     public Transaction createTransaction (Transaction transaction){
-        String sql = "insert into transactions(member_id, book_id, date_of_issue, due_date, return_date, status)  values(?,?,?,?,?,?)";
+        String sql = "INSERT INTO transactions(member_id, book_id, date_of_issue, due_date, return_date, status)  VALUES(?,?,?,?,?,?)";
 
         try (Connection con = this.db.getConnection()){
             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -44,26 +27,24 @@ public class LibrarianDAO {
             ps.setDate(3, new java.sql.Date(transaction.getDateOfIssue().getTime()));
             ps.setDate(4, new java.sql.Date(transaction.getDueDate().getTime()));
 
-            if (transaction.getReturnDate() != null) {
-                ps.setDate(5, new java.sql.Date(transaction.getReturnDate().getTime()));
-            } else {
+            if (transaction.getReturnDate() == null) {
                 ps.setNull(5, java.sql.Types.DATE);
             }
 
             ps.setString(6, transaction.getStatus());
-
-            if (ps.executeUpdate() > 0) {
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    int generatedId = rs.getInt(1); // First column of the first (and only) row
-                    return getTransactionById(generatedId);
-                }
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                int generatedId = rs.getInt(1); // First column of the first (and only) row
+                return getTransactionById(generatedId);
+            }else{
+                throw new SQLException("Failed to create transaction");
             }
 
         }catch (SQLException e){
             System.out.println("createTransactionSQLException Error:" + e.getMessage());
+            throw new RuntimeException("Database error in createTransaction(): " + e.getMessage());
         }
-        return null;
     }
 
     public Transaction getTransactionById(int id){
