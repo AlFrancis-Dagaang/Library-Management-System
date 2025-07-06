@@ -42,13 +42,13 @@ public class TransactionDAO {
             }
 
         }catch (SQLException e){
-            System.out.println("createTransactionSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in createTransaction: " + e.getMessage());
             throw new RuntimeException("Database error in createTransaction(): " + e.getMessage());
         }
     }
 
     public Transaction getTransactionById(int id){
-        String sql = "select * from transactions where transaction_id=?";
+        String sql = "SELECT * FROM transactions WHERE transaction_id=?";
 
         try (Connection con = this.db.getConnection()){
             PreparedStatement ps = con.prepareStatement(sql);
@@ -67,10 +67,12 @@ public class TransactionDAO {
             }
 
         }catch (SQLException e){
-            System.out.println("getTransactionByIdSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in getTransactionById: " + e.getMessage());
+            throw new RuntimeException("Database error in getTransactionById(): " + e.getMessage());
         }
         return null;
     }
+
 
     public TransactionDetailsDTO getTransactionDetailsById(int id){
         String sql = "SELECT \n" +
@@ -99,7 +101,8 @@ public class TransactionDAO {
             }
 
         }catch (SQLException e){
-            System.out.println("getTransactionDetailsByIdSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in getTransactionDetailsById: " + e.getMessage());
+            throw new RuntimeException("Database error in getTransactionDetailsById(): " + e.getMessage());
         }
         return null;
     }
@@ -123,54 +126,54 @@ public class TransactionDAO {
             if(ps.executeUpdate()>0){
                 return transaction;
             }
-
         }catch (SQLException e){
-            System.out.println("updateTransactionSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in updateTransaction: " + e.getMessage());
+            throw new RuntimeException("Database error in updateTransaction(): " + e.getMessage());
+
         }
         return null;
-
     }
 
     public boolean deleteTransactionById(int id){
-        String sql = "delete from transactions where transaction_id=?";
+        String sql = "DELETE FROM transactions WHERE transaction_id=?";
         try(Connection con = this.db.getConnection()){
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setInt(1, id);
             if(ps.executeUpdate()>0){
                 return true;
             }
-
         }catch (SQLException e){
-            System.out.println("deleteTransactionByIdSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in deleteTransactionById: " + e.getMessage());
+            throw new RuntimeException("Database error in deleteTransactionById(): " + e.getMessage());
         }
         return false;
     }
 
-    public List<Transaction> getAllTransactionByMemberId(int id){
-        String sql = "select * from transactions where member_id=?";
+    public List<Transaction> getTransactionsByStatus(String byStatus){
+        String sql = "SELECT * FROM transactions WHERE status = ?";
         List<Transaction> transactions = new ArrayList<>();
 
         try(Connection con = this.db.getConnection()){
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, id);
+            ps.setString(1, byStatus);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 int transactionId = rs.getInt("transaction_id");
-                int bookId = rs.getInt("book_id");
                 int memberId = rs.getInt("member_id");
+                int bookId = rs.getInt("book_id");
                 Date dateOfIssue = rs.getDate("date_of_issue");
                 Date dueDate = rs.getDate("due_date");
                 Date returnDate = rs.getDate("return_date");
                 String status = rs.getString("status");
-
                 transactions.add(new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status));
             }
             return transactions;
         }catch (SQLException e){
-            System.out.println("getAllTransactionByMemberIdSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in getTransactionsByStatus: " + e.getMessage());
+            throw new RuntimeException("Database error in getTransactionsByStatus(): " + e.getMessage());
         }
-        return null;
     }
+
 
 
 
