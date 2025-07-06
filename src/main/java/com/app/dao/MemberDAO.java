@@ -1,8 +1,10 @@
 package com.app.dao;
 
 import com.app.model.Member;
+import com.app.model.Transaction;
 import com.app.util.DBConnection;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -173,6 +175,31 @@ public class MemberDAO {
         }catch (SQLException e) {
             System.err.println("SQLException in sortMembersStudent: " + e.getMessage());
             throw new RuntimeException("Database error in sortMembersStudent()");
+        }
+    }
+
+    public List<Transaction> getAllMemberTransactions(int memberID) {
+        String sql = "SELECT * FROM transactions WHERE member_id = ?";
+        List<Transaction>memberTransactions = new ArrayList<>();
+
+        try(Connection con = this.db.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, memberID);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()) {
+                int transactionId = rs.getInt("transaction_id");
+                int memberId = rs.getInt("member_id");
+                int bookId = rs.getInt("book_id");
+                Date dateOfIssue = rs.getDate("date_of_issue");
+                Date dueDate = rs.getDate("due_date");
+                Date returnDate = rs.getDate("return_date");
+                String status = rs.getString("status");
+                memberTransactions.add(new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status));
+            }
+            return memberTransactions;
+        }catch (SQLException e) {
+            System.err.println("SQLException in getAllMemberTransactions: " + e.getMessage());
+            throw new RuntimeException("Database error in getAllMemberTransactions()");
         }
     }
 
