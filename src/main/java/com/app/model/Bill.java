@@ -12,13 +12,20 @@ public class Bill {
     private String status;
 
     public Bill(){}
-    public Bill(int billId, Date date, int memberId, int transactionId, BigDecimal amount) {
+    public Bill( Date date, int memberId, int transactionId, BigDecimal amount, String status) {
+        this.date = date;
+        this.memberId = memberId;
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.status = status;
+    }
+    public Bill(int billId, Date date, int memberId, int transactionId, BigDecimal amount, String status) {
         this.billId = billId;
         this.date = date;
         this.memberId = memberId;
         this.transactionId = transactionId;
         this.amount = amount;
-        this.status = "unpaid";
+        this.status = status;
     }
 
     public int getBillId() {
