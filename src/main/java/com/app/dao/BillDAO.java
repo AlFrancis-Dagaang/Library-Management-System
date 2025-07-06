@@ -1,0 +1,87 @@
+package com.app.dao;
+
+import com.app.model.Bill;
+import com.app.util.DBConnection;
+
+import java.math.BigDecimal;
+import java.sql.*;
+
+public class BillDAO {
+    private DBConnection dbConnection;
+    public BillDAO(DBConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
+    public Bill getBillById(int billId){
+        String sql = "SELECT * FROM bills WHERE bill_id = ?";
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, billId);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                int id = rs.getInt("bill_id");
+                Date date = rs.getDate("date");
+                int memberId = rs.getInt("member_id");
+                int transactionId = rs.getInt("transaction_id");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String status = rs.getString("status");
+
+                return new Bill(id, date, memberId, transactionId, amount, status);
+            }
+
+        }catch (SQLException e){
+            System.err.println("SQLException in getBillById: " + e.getMessage());
+            throw new RuntimeException("Database error in getBillById: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public Bill createBil (Bill bill){
+        String sql = "INSERT INTO bills (date, member_id, transaction_id, amount, status) VALUES (?, ?, ?, ?, ?)";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setDate(1, new java.sql.Date(bill.getDate().getTime()));
+            ps.setInt(2, bill.getMemberId());
+            ps.setInt(3, bill.getTransactionId());
+            ps.setBigDecimal(4, bill.getAmount());
+            ps.setString(5, bill.getStatus());
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if(rs.next()){
+                int id = rs.getInt(1);
+                return getBillById(id);
+            }else {
+                throw new SQLException("Failed to insert bill");
+            }
+
+        }catch (SQLException e){
+            System.err.println("SQLException in createBil: " + e.getMessage());
+            throw new RuntimeException("Database error in createBil: " + e.getMessage());
+        }
+    }
+
+    public Bill getBillByTransactionId(int billId) {
+        String sql = "SELECT * FROM bills WHERE transaction_id = ?";
+        try (Connection con = this.dbConnection.getConnection()) {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, billId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int id = rs.getInt("bill_id");
+                Date date = rs.getDate("date");
+                int memberId = rs.getInt("member_id");
+                int transactionId = rs.getInt("transaction_id");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String status = rs.getString("status");
+
+                return new Bill(id, date, memberId, transactionId, amount, status);
+            }
+        } catch (SQLException e) {
+            System.err.println("SQLException in getBillByTransactionId: " + e.getMessage());
+            throw new RuntimeException("Database error in getBillByTransactionId: " + e.getMessage());
+        }
+        return null;
+    }
+
+}

@@ -5,6 +5,7 @@ import com.app.exception.ErrorException;
 import com.app.exception.ResourceNotFound;
 import com.app.exception.TransactionNotFoundException;
 import com.app.model.Admin;
+import com.app.model.Bill;
 import com.app.model.Transaction;
 import com.app.model.TransactionDetailsDTO;
 import com.app.service.TransactionService;
@@ -20,6 +21,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/v1/lms/transactions/*")
@@ -32,12 +34,22 @@ public class TransactionServlet extends HttpServlet {
 
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getPathInfo();
+        String [] paths = PathUtil.getPaths(path);
 
         try{
             if(path == null || path.isEmpty()){
                 Transaction transaction = JsonUtil.parse(req, Transaction.class);
                 transaction = this.transactionService.createTransaction(transaction);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, transaction);
+            }else if(paths.length ==3 && PathUtil.isNumeric(paths[1]) && paths[2].equals("return")){ //----------> /{id}/return
+                int transactionId = Integer.parseInt(paths[1]);
+                Bill bill = this.transactionService.returnBook(transactionId);
+
+                if(bill == null){
+                    JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "General Book has no bill");
+                }else{
+                    JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, bill);
+                }
             }
         }catch (IllegalArgumentException e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
@@ -48,103 +60,64 @@ public class TransactionServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
-        String[] pathParts  = path.split("/");
-        Gson gson = new Gson();
+        String[] paths = PathUtil.getPaths(path);
+        String statusParam = request.getParameter("status");
 
-        if(path.equals("/protected")){
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println("authorized: proceed");
-
-            }else{
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().println("unauthorized");
+        try{
+            if(paths.length ==2 && PathUtil.isNumeric(paths[1])){// --------/{id} > get transaction by id
+                int transactionId = Integer.parseInt(paths[1]);
+                Transaction transaction = this.transactionService.getTransactionById(transactionId);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK, transaction);
+            }else if(paths.length ==3 && PathUtil.isNumeric(paths[1]) && paths[2].equals("details")){ // ----------/{id}/details > get details of a transaction  by its id
+                int transactionId = Integer.parseInt(paths[1]);
+                TransactionDetailsDTO transactionDetailsDTO = this.transactionService.getTransactionDetails(transactionId);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK, transactionDetailsDTO);
+            }else if(paths.length ==2 && paths[1].equals("sort")&& statusParam!=null){ // ----------/sort?status=issued,returned, overdue  > sort transaction by status
+                List<Transaction> transactions = this.transactionService.getAllTransactionsByStatus(statusParam);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK, transactions);
             }
-        }else if(pathParts.length == 3 && pathParts[2].equals("details")){ // GET /{id}/details "Get a transaction details"
-            int id = Integer.parseInt(pathParts[1]);
-            try{
-                TransactionDetailsDTO transactionDetailsDTO = this.transactionService.getTransactionDetails(id);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println(gson.toJson(transactionDetailsDTO));
-            }catch (ResourceNotFound e){
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.setContentType("application/json");
-                ErrorException errorException = new ErrorException(e.getMessage(), HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().println(gson.toJson(errorException));
-            }
-
-        } else if (pathParts.length == 4 && pathParts[1].equals("member")&& pathParts[3].equals("transactions")) {// GET /member/{id}/details "get all transaction made from a member";
-            int id = Integer.parseInt(pathParts[2]);
-            try{
-                List<Transaction> transactions = this.transactionService.getAllTransactions(id);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println(gson.toJson(transactions));
-
-            }catch (TransactionNotFoundException e){
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.setContentType("application/json");
-                ErrorException errorException = new ErrorException(e.getMessage(), HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().println(gson.toJson(errorException));
-            }
-        }  else if(pathParts.length == 2){ // GET /{id} "Get transaction by id"
-            int id = Integer.parseInt(pathParts[1]);
-            try{
-                Transaction transaction = this.transactionService.getTransactionById(id);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println(gson.toJson(transaction));
-            }catch (TransactionNotFoundException e){
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.setContentType("application/json");
-                ErrorException errorException = new ErrorException("transaction not found", HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().println(gson.toJson(errorException));
-            }
+        }catch (TransactionNotFoundException e){
+            JsonUtil.writeOk(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeOk(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
-    public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getPathInfo();
-        String idStr = path.substring(1);
-        int id = Integer.parseInt(idStr);
-        Gson gson = new Gson();
-        BufferedReader reader = request.getReader();
-        Transaction transaction = gson.fromJson(reader, Transaction.class);
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String path = req.getPathInfo();
+        String[] paths = PathUtil.getPaths(path);
+        Transaction transaction = JsonUtil.parse(req, Transaction.class);
 
         try{
-            Transaction tempTransaction = this.transactionService.updateTransaction(transaction, id);
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/json");
-            response.getWriter().println(gson.toJson(tempTransaction));
+            if(paths.length ==2 && PathUtil.isNumeric(paths[1])){
+                int transactionId = Integer.parseInt(paths[1]);
+                Transaction transactionUpdate = this.transactionService.updateTransaction(transaction, transactionId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, transactionUpdate);
+            }
         }catch (TransactionNotFoundException e){
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.setContentType("application/json");
-            ErrorException errorException = new ErrorException(e.getMessage(), HttpServletResponse.SC_NOT_FOUND);
-            response.getWriter().println(gson.toJson(errorException));
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
-        String idStr = path.substring(1);
-        int id = Integer.parseInt(idStr);
-        Gson gson = new Gson();
+        String [] paths = PathUtil.getPaths(path);
+
         try{
-            if(this.transactionService.deleteTransaction(id)){
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().println(gson.toJson("transaction deleted successfully"));
+            if(paths.length ==2 && PathUtil.isNumeric(paths[1])){
+                int transactionId = Integer.parseInt(paths[1]);
+                this.transactionService.deleteTransaction(transactionId);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK, "Successfully deleted transaction");
             }
         }catch (TransactionNotFoundException e){
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.setContentType("application/json");
-            ErrorException errorException = new ErrorException(e.getMessage(), HttpServletResponse.SC_NOT_FOUND);
-            response.getWriter().println(gson.toJson(errorException));
+            JsonUtil.writeError(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
+            JsonUtil.writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
+
 
 }
