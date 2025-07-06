@@ -4,10 +4,7 @@ import com.app.model.Book;
 import com.app.util.DBConnection;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +20,7 @@ public class BookDAO {
         String sql ="INSERT INTO books (author, title, price, years_of_publication, isAvailable, type) VALUES (?,?,?,?,?,?)";
 
         try(Connection con = this.dbConnection.getConnection()){
-            PreparedStatement ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, book.getAuthor());
             ps.setString(2, book.getTitle());
             ps.setBigDecimal(3, book.getPrice());
@@ -33,13 +30,16 @@ public class BookDAO {
             int rows = ps.executeUpdate();
 
             if(rows > 0){
-                return book;
+                ResultSet rs = ps.getGeneratedKeys();
+                return getBookById(rs.getInt(1));
+            }else{
+                throw new SQLException("Book could not be added");
             }
 
         }catch (SQLException e) {
-            System.out.println("addBookSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in addBook: " + e.getMessage());
+            throw new RuntimeException("Database error in addBook()");
         }
-        return null;
     }
 
     public Book getBookById(int id){
@@ -56,20 +56,19 @@ public class BookDAO {
                 int yearOfPublication = rs.getInt("years_of_publication");
                 boolean available = rs.getBoolean("isAvailable");
                 String type = rs.getString("type");
-
-                Book getBook = new Book(bookId, author, title, price, yearOfPublication, available, type);
-                return getBook;
+                return new Book(bookId, author, title, price, yearOfPublication, available, type);
             }
 
         }catch (SQLException e) {
-            System.out.println("getBookByIdSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in getBookById: " + e.getMessage());
+            System.out.println("Database error in getBookById()");
         }
         return null;
     }
 
     public List<Book> getAllBooks(){
         String sql ="SELECT * FROM books";
-        List<Book> books = new ArrayList<Book>();
+        List<Book> books = new ArrayList<>();
         try(Connection conn = this.dbConnection.getConnection()){
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -81,13 +80,13 @@ public class BookDAO {
                 int yearOfPublication = rs.getInt("years_of_publication");
                 boolean available = rs.getBoolean("isAvailable");
                 String type = rs.getString("type");
-                Book listBook = new Book(bookId, author, title, price, yearOfPublication, available, type);
-                books.add(listBook);
+
+                books.add(new Book(bookId, author, title, price, yearOfPublication, available, type));
             }
             return books;
-
         }catch (SQLException e) {
-            System.out.println("getAllBooksSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in getAllBooks(): " + e.getMessage());
+            System.out.println("Database error in getAllBooks()");
         }
         return null;
     }
@@ -104,13 +103,14 @@ public class BookDAO {
             ps.setString(6, book.getType());
             ps.setInt(7, id);
             int rows = ps.executeUpdate();
-            if(rows > 0){
-                return getBookById(id);
-            }
+
+            return rows > 0 ? getBookById(id) : null;
+
         }catch (SQLException e) {
-            System.out.println("updateBookSQLException Error:" + e.getMessage());
+            System.err.println("SQLException in updateBook: " + e.getMessage());
+            throw new RuntimeException("Database error in updateBook()");
         }
-        return null;
+
     }
 
     public boolean deleteBook(int id){
@@ -122,10 +122,94 @@ public class BookDAO {
             int rows = ps.executeUpdate();
             return rows > 0;
         }catch (SQLException e) {
-            System.out.println("deleteBookSQLException Error:" + e.getMessage());
-            return false;
+            System.err.println("SQLException in deleteBook: " + e.getMessage());
+            throw new RuntimeException("Database error in deleteBook()");
         }
     }
+
+    public  List<Book> getBooksByType(String type){
+        String sql ="SELECT * FROM books WHERE type = ?";
+        List<Book> books = new ArrayList<>();
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, type);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                int bookId = rs.getInt("book_id");
+                String author = rs.getString("author");
+                String title = rs.getString("title");
+                BigDecimal price = rs.getBigDecimal("price");
+                int yearOfPublication = rs.getInt("years_of_publication");
+                String bookType = rs.getString("type");
+                boolean available = rs.getBoolean("isAvailable");
+                books.add(new Book(bookId, author, title, price, yearOfPublication, available, bookType));
+            }
+            return books;
+        }catch (SQLException e) {
+            System.err.println("SQLException in getBooksByType: " + e.getMessage());
+            throw new RuntimeException("Database error in getBooksByType()");
+        }
+    }
+    public  List<Book> getBooksByAvailable(boolean isBookAvailable){
+        String sql ="SELECT * FROM books WHERE isAvailable = ?";
+        List<Book> books = new ArrayList<>();
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setBoolean(1, isBookAvailable);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                int bookId = rs.getInt("book_id");
+                String author = rs.getString("author");
+                String title = rs.getString("title");
+                BigDecimal price = rs.getBigDecimal("price");
+                int yearOfPublication = rs.getInt("years_of_publication");
+                String bookType = rs.getString("type");
+                boolean available = rs.getBoolean("isAvailable");
+                books.add(new Book(bookId, author, title, price, yearOfPublication, available, bookType));
+            }
+            return books;
+        }catch (SQLException e) {
+            System.err.println("SQLException in getBooksByAvailable: " + e.getMessage());
+            throw new RuntimeException("Database error in getBooksByAvailable()");
+        }
+    }
+    public  List<Book> getBooksByPriceIsNull(boolean priceIsNull){
+
+        String sql;
+
+        if(priceIsNull){
+            sql= "SELECT * FROM books WHERE price IS NULL";
+        }else{
+            sql= "SELECT * FROM books WHERE price IS NOT NULL ";
+        }
+
+        List<Book> books = new ArrayList<>();
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                int bookId = rs.getInt("book_id");
+                String author = rs.getString("author");
+                String title = rs.getString("title");
+                BigDecimal price = rs.getBigDecimal("price");
+                int yearOfPublication = rs.getInt("years_of_publication");
+                String bookType = rs.getString("type");
+                boolean available = rs.getBoolean("isAvailable");
+                books.add(new Book(bookId, author, title, price, yearOfPublication, available, bookType));
+            }
+            return books;
+        }catch (SQLException e) {
+            System.err.println("SQLException in getBooksByPriceNull: " + e.getMessage());
+            throw new RuntimeException("Database error in getBooksByPriceNull()");
+        }
+    }
+
+
+
+
 
 
 

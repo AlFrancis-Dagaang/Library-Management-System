@@ -1,28 +1,20 @@
 package com.app.controller;
 
 import com.app.config.AppConfig;
-import com.app.dto.BookDTO;
-import com.app.exception.BookNotFoundException;
-import com.app.exception.ErrorException;
-import com.app.exception.MemberNotFoundException;
-import com.app.exception.ResourceCreationException;
+import com.app.exception.*;
 import com.app.model.Book;
-import com.app.model.Member;
 import com.app.service.BookService;
-import com.google.gson.Gson;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletException;
+import com.app.util.JsonUtil;
+import com.app.util.PathUtil;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet ("/v1/books/*")
+@WebServlet ("/v1/lms/books/*")
 public class BookServlet extends HttpServlet {
     private BookService bookService;
 
@@ -30,107 +22,87 @@ public class BookServlet extends HttpServlet {
         this.bookService = AppConfig.getBookService();
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getPathInfo();
-        BufferedReader reader = request.getReader();
-        Gson gson = new Gson();
-        Book book = gson.fromJson(reader, Book.class);
-        String json;
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo();
+        String [] paths = PathUtil.getPaths(path);
+        Book book = JsonUtil.parse(req, Book.class);
 
-        if(path.equals("/createBook")) {
-            try{
-                Book newBook = this.bookService.addBook(book);
-                json = gson.toJson(newBook);
-                response.setStatus(HttpServletResponse.SC_CREATED);
-                response.setContentType("application/json");
-                response.getWriter().write(json);
-            }catch (ResourceCreationException e){
-                ErrorException error = new ErrorException(e.getMessage(), 400);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                json = gson.toJson(error);
-                response.getWriter().print(json);
+        try{
+            if(path == null || path.isEmpty()) { //-----------> /v1/lms/books "Create book"
+                Book temp = this.bookService.addBook(book);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, temp);
             }
+        }catch (RuntimeException e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
-
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String getPath = request.getPathInfo();
-        Gson gson = new Gson();
-        if(getPath == null|| getPath.equals("/")){
-            try{
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo();
+        String [] paths = PathUtil.getPaths(path);
+        String typeParam = req.getParameter("type");
+        String isAvailableParam = req.getParameter("isAvailable");
+        String priceParam = req.getParameter("isPriceIsNull");
+
+        try{
+            if(path == null || path.isEmpty()) {//-----------> /v1/lms/books "Get all book"
                 List<Book> books = this.bookService.getAllBooks();
-                String json = gson.toJson(books);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType("application/json");
-                response.getWriter().write(json);
-
-            }catch (BookNotFoundException e){
-                ErrorException error = new ErrorException(e.getMessage(), 404);
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.setContentType("application/json");
-                response.getWriter().print(gson.toJson(error));
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+            }else if(paths.length==2 && PathUtil.isNumeric(paths[1])) {//-----------> /{id} "Get book by id"
+                int bookId = Integer.parseInt(paths[1]);
+                Book book = this.bookService.getBookById(bookId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, book);
+            }else if(paths.length==2 && paths[1].equals("sort") && typeParam != null) {//-----------> /sort?type="General Book, Book Bank, Reference Book"  "Get book by id"
+                List<Book> books = this.bookService.getBooksByType(typeParam);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+            }else if(paths.length==2 && paths[1].equals("sort") && isAvailableParam != null) {//-----------> /sort?isAvailable="true/false"  "Get book by availability"
+                boolean isBookAvailable = Boolean.parseBoolean(isAvailableParam);
+                List<Book> books = this.bookService.getBooksByAvailability(isBookAvailable);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+            }else if(paths.length==2 && paths[1].equals("sort") && priceParam != null) {//-----------> /sort?isPriceNull="true/false"  "Get book by price is null"
+                boolean isPriceIsNull = Boolean.parseBoolean(priceParam);
+                List<Book> books = this.bookService.getBooksByPriceIsNull(isPriceIsNull);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
             }
-
-        }else{
-            int id;
-            String idStr = getPath.substring(1);
-            id = Integer.parseInt(idStr);
-            try{
-                Book book = bookService.getBookById(id);
-                String json = gson.toJson(book);
-                response.setContentType("application/json");
-                response.getWriter().write(json);
-
-            }catch (BookNotFoundException e){
-                ErrorException error = new ErrorException(e.getMessage(), 404);
-                String errorJson = gson.toJson(error);
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().write(errorJson);
-            }
+        }catch (ResourceNotFound e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        }catch (RuntimeException e){
         }
     }
 
-    public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        BufferedReader reader = request.getReader();
-        Gson gson = new Gson();
-        Book book = gson.fromJson(reader, Book.class);
-        String getId = request.getPathInfo().substring(1);
-        int id = Integer.parseInt(getId);
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+        String path = req.getPathInfo();
+        Book updateBook = JsonUtil.parse(req, Book.class);
+        String [] paths = PathUtil.getPaths(path);
 
         try{
-            Book updateBook = this.bookService.updateBook(book, id);
-            String json = gson.toJson(updateBook);
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/json");
-            response.getWriter().write(json);
-
-        }catch (BookNotFoundException e){
-            ErrorException error = new ErrorException(e.getMessage(), 404);
-            String errorJson = gson.toJson(error);
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.getWriter().write(errorJson);
+            if(paths.length==2 && PathUtil.isNumeric(paths[1])){ //-----------> /{id} "Update book by id"
+                int bookId = Integer.parseInt(paths[1]);
+                Book book = this.bookService.updateBook(updateBook, bookId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, book);
+            }
+        }catch (ResourceNotFound e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        } catch (RuntimeException e) {
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
-
     }
 
-    public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getPathInfo();
-        String idStr = path.substring(1);
-        int id = Integer.parseInt(idStr);
-        Gson gson = new Gson();
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo();
+        String [] paths = PathUtil.getPaths(path);
 
         try{
-            this.bookService.deleteBook(id);
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/json");
-            response.getWriter().write("Successfully deleted the book");
-        }catch (BookNotFoundException e){
-            ErrorException error = new ErrorException(e.getMessage(), 404);
-            String errorJson = gson.toJson(error);
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.setContentType("application/json");
-            response.getWriter().write(errorJson);
+            if(paths.length==2 && PathUtil.isNumeric(paths[1])){ //-----------> /{id} "Delete book by id"
+                int bookId = Integer.parseInt(paths[1]);
+                this.bookService.deleteBook(bookId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Deleted Successfully");
+            }
+        }catch (ResourceNotFound e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        } catch (RuntimeException e) {
+            JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
