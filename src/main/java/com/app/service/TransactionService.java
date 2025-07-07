@@ -8,9 +8,10 @@ import com.app.dao.MemberDAO;
 import com.app.exception.TransactionNotFoundException;
 import com.app.model.*;
 
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
+
 import java.util.List;
 
 public class TransactionService {
@@ -40,8 +41,8 @@ public class TransactionService {
         try{
             LocalDate localDate = LocalDate.now();
             LocalDate dueDate = LoanPolicyConfig.calculateDueDate(book);
-            transaction.setDateOfIssue(java.sql.Date.valueOf(localDate));
-            transaction.setDueDate(java.sql.Date.valueOf(dueDate));
+            transaction.setDateOfIssue(localDate);
+            transaction.setDueDate(dueDate);
             transaction.setStatus("issued");
             member.addBookIssued();
             book.setAvailable(false);
@@ -105,16 +106,36 @@ public class TransactionService {
     }
 
     public Bill returnBook(int transaction_id) {
+
         Transaction transaction = this.transactionDAO.getTransactionById(transaction_id);
         Book book = this.bookDAO.getBookById(transaction.getBookId());
-        Date date = new Date();
+        LocalDate currentDate = LocalDate.now();
+        LocalDate dueDate = transaction.getDueDate();
+
+        System.out.println("due date: " + dueDate);
 
         Transaction updatedTransaction;
         Book updatedBook;
 
         if(book.getType().equals("General Book")) {
+
+            if(dueDate.isBefore(currentDate)){
+                transaction.setStatus("overdue");
+                transaction.setReturnDate(currentDate);
+                book.setAvailable(true);
+                updatedBook = this.bookDAO.updateBook(book, book.getBookId());
+                updatedTransaction = this.transactionDAO.updateTransaction(transaction, transaction.getTransactionId());
+                if(updatedTransaction != null && updatedBook != null){
+                    BigDecimal billAmount = book.getPrice().add(LoanPolicyConfig.calculateDueAmount(book.getType()));
+                    String status = "unpaid";
+                    Bill bill = new Bill(currentDate, transaction.getMemberId(), transaction.getTransactionId(), billAmount, status);
+                    return this.billDAO.createBil(bill);
+                }
+                throw new RuntimeException("Creating new bill failed for overdue transaction for General Book");
+            }
+
             transaction.setStatus("returned");
-            transaction.setReturnDate(date);
+            transaction.setReturnDate(currentDate);
             book.setAvailable(true);
 
             updatedTransaction = this.transactionDAO.updateTransaction(transaction, transaction.getTransactionId());
@@ -126,23 +147,42 @@ public class TransactionService {
                 throw new RuntimeException("Updating failed in General Book");
             }
 
-        }else if (book.getPrice() != null && this.billDAO.getBillByTransactionId(transaction.getTransactionId()) == null && book.getType().equals("Book Bank")) {
+        }else if (book.getType().equals("Book Bank") && book.getPrice() != null && this.billDAO.getBillByTransactionId(transaction.getTransactionId()) == null ) {
+
+            if(dueDate.isBefore(currentDate)){
+                transaction.setStatus("overdue");
+                transaction.setReturnDate(currentDate);
+                book.setAvailable(true);
+                updatedBook = this.bookDAO.updateBook(book, transaction.getBookId());
+                updatedTransaction = this.transactionDAO.updateTransaction(transaction, transaction.getTransactionId());
+
+                if(updatedTransaction != null && updatedBook != null){
+                    BigDecimal billAmount = book.getPrice().add(LoanPolicyConfig.calculateDueAmount(book.getType()));
+                    String status = "unpaid";
+                    Bill bill = new Bill(currentDate, transaction.getMemberId(), transaction.getTransactionId(), billAmount, status);
+                    return this.billDAO.createBil(bill);
+                }
+                throw new RuntimeException("Creating new bill failed for overdue transaction for book bank");
+            }
+
             transaction.setStatus("returned");
-            transaction.setReturnDate(date);
+            transaction.setReturnDate(currentDate);
             book.setAvailable(true);
             BigDecimal amount = book.getPrice();
             String status = "unpaid";
 
-            updatedTransaction = this.transactionDAO.updateTransaction(transaction, transaction.getTransactionId());
+            updatedTransaction = this.transactionDAO.updateTransaction(transaction, book.getBookId());
             updatedBook = this.bookDAO.updateBook(book, book.getBookId());
-            Bill createdBill = new Bill(date, transaction.getMemberId(), transaction.getTransactionId(), amount, status);
+            Bill createdBill = new Bill(currentDate, transaction.getMemberId(), transaction.getTransactionId(), amount, status);
 
             if(updatedBook != null && updatedTransaction!=null) {
                 return this.billDAO.createBil(createdBill);
             }else{
                 throw new RuntimeException("Updating failed in Book Bank");
             }
+
         }
+
         throw new IllegalArgumentException("Bill is already created for this transaction");
     }
 

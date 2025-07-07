@@ -43,6 +43,7 @@ public class TransactionServlet extends HttpServlet {
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, transaction);
             }else if(paths.length ==3 && PathUtil.isNumeric(paths[1]) && paths[2].equals("return")){ //----------> /{id}/return
                 int transactionId = Integer.parseInt(paths[1]);
+                System.out.println(transactionId+" is the id");
                 Bill bill = this.transactionService.returnBook(transactionId);
 
                 if(bill == null){
@@ -51,6 +52,8 @@ public class TransactionServlet extends HttpServlet {
                     JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, bill);
                 }
             }
+        }catch (ResourceNotFound e){
+            JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         }catch (IllegalArgumentException e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }catch (RuntimeException e){

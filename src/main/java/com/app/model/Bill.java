@@ -1,25 +1,26 @@
 package com.app.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Bill {
     private int billId;
-    private Date date;
+    private LocalDate date;
     private int memberId;
     private int transactionId;
     private BigDecimal amount;
     private String status;
 
     public Bill(){}
-    public Bill( Date date, int memberId, int transactionId, BigDecimal amount, String status) {
+    public Bill( LocalDate date, int memberId, int transactionId, BigDecimal amount, String status) {
         this.date = date;
         this.memberId = memberId;
         this.transactionId = transactionId;
         this.amount = amount;
         this.status = status;
     }
-    public Bill(int billId, Date date, int memberId, int transactionId, BigDecimal amount, String status) {
+    public Bill(int billId, LocalDate date, int memberId, int transactionId, BigDecimal amount, String status) {
         this.billId = billId;
         this.date = date;
         this.memberId = memberId;
@@ -36,11 +37,11 @@ public class Bill {
         this.billId = billId;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 

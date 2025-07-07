@@ -2,12 +2,13 @@ package com.app.model;
 
 import com.app.config.Constant;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Member {
     private int memberId;
     private String type;
-    private Date dateOfMembership;
+    private LocalDate dateOfMembership;
     private int numberOfBookIssued=0;
     private int maxBookLimit;
     private String name;
@@ -74,11 +75,11 @@ public class Member {
         this.numberOfBookIssued = numberOfBookIssued;
     }
 
-    public Date getDateOfMembership() {
+    public LocalDate getDateOfMembership() {
         return dateOfMembership;
     }
 
-    public void setDateOfMembership(Date dataOfMembership) {
+    public void setDateOfMembership(LocalDate dataOfMembership) {
         this.dateOfMembership = dataOfMembership;
     }
 

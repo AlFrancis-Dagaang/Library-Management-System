@@ -1,5 +1,7 @@
 import org.junit.Test;
 
+import java.util.Date;
+
 public class MemberDAOTest {
 
      /*@Test
@@ -15,6 +17,7 @@ public class MemberDAOTest {
       */
      @Test
      public void test(){
+          Date date = new Date();
 
      }
 }

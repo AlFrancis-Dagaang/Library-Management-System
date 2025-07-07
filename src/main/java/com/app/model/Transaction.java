@@ -1,18 +1,19 @@
 package com.app.model;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Transaction {
     private int transactionId;
     private int memberId;
     private int bookId;
-    private Date dateOfIssue;
-    private Date dueDate;
-    private Date returnDate;
+    private LocalDate dateOfIssue;
+    private LocalDate dueDate;
+    private LocalDate returnDate;
     private String status;
 
     public Transaction() {}
-    public Transaction(int transactionId, int memberId, int bookId, Date dateOfIssue, Date dateOfDue, Date returnDate, String status) {
+    public Transaction(int transactionId, int memberId, int bookId, LocalDate dateOfIssue, LocalDate dateOfDue, LocalDate returnDate, String status) {
         this.transactionId = transactionId;
         this.memberId = memberId;
         this.bookId = bookId;
@@ -45,27 +46,27 @@ public class Transaction {
         this.memberId = memberId;
     }
 
-    public Date getDateOfIssue() {
+    public LocalDate getDateOfIssue() {
         return dateOfIssue;
     }
 
-    public void setDateOfIssue(Date dateOfIssue) {
+    public void setDateOfIssue(LocalDate dateOfIssue) {
         this.dateOfIssue = dateOfIssue;
     }
 
-    public Date getDueDate() {
+    public LocalDate getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(Date dueDate) {
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 
-    public Date getReturnDate() {
+    public LocalDate getReturnDate() {
         return returnDate;
     }
 
-    public void setReturnDate(Date returnDate) {
+    public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
     }
 

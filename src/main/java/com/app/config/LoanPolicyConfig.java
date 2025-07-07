@@ -2,6 +2,7 @@ package com.app.config;
 
 import com.app.model.Book;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 
@@ -15,5 +16,14 @@ public class LoanPolicyConfig {
         }else{
             throw new IllegalArgumentException("Reference book cannot be issued");
         }
+    }
+
+    public static BigDecimal calculateDueAmount(String status){
+        if(status.equals("Book Bank")){
+            return new BigDecimal("100.00");
+        }
+
+        return new BigDecimal("50.00");
+
     }
 }

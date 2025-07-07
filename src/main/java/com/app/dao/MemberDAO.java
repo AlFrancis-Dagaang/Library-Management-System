@@ -1,18 +1,21 @@
 package com.app.dao;
 
+import com.app.model.Bill;
 import com.app.model.Member;
 import com.app.model.Transaction;
 import com.app.util.DBConnection;
+import com.app.util.LocalDateUtil;
 
-import javax.xml.crypto.Data;
+import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class MemberDAO {
 
-    private DBConnection db;
+    private final DBConnection db;
 
     public MemberDAO(DBConnection dbConnection) {
         this.db = dbConnection;
@@ -28,7 +31,7 @@ public class MemberDAO {
                 int memberID = rs.getInt("id");
                 String type = rs.getString("type");
                 int numberBookIssued = rs.getInt("number_book_issued");
-                Date dateOfMembership = rs.getDate("date_of_membership");
+                LocalDate dateOfMembership = LocalDateUtil.getNullableLocalDate(rs,"date_of_membership");
                 int maxBookLimit = rs.getInt("max_book_limit");
                 String name = rs.getString("name");
                 String address = rs.getString("address");
@@ -78,7 +81,7 @@ public class MemberDAO {
     }
 
     public List<Member> getAllMembers() {
-        List<Member> members = new ArrayList<Member>();
+        List<Member> members = new ArrayList<>();
 
         String sql = "SELECT * FROM member";
 
@@ -89,7 +92,7 @@ public class MemberDAO {
                 int memberID = rs.getInt("id");
                 String type = rs.getString("type");
                 int numberBookIssued = rs.getInt("number_book_issued");
-                Date dateOfMembership = rs.getDate("date_of_membership");
+                LocalDate dateOfMembership = LocalDateUtil.getNullableLocalDate(rs,"date_of_membership");
                 int maxBookLimit = rs.getInt("max_book_limit");
                 String name = rs.getString("name");
                 String address = rs.getString("address");
@@ -117,7 +120,7 @@ public class MemberDAO {
             ps.setString(2, member.getAddress());
             ps.setLong(3, member.getPhoneNumber());
             ps.setString(4, member.getType());
-            ps.setDate(5,new java.sql.Date(member.getDateOfMembership().getTime()));
+            ps.setDate(5,java.sql.Date.valueOf(member.getDateOfMembership()));
             ps.setInt(6, member.getNumberOfBookIssued());
             ps.setInt(7, member.getMaxBookLimit());
             ps.setInt(8, id);
@@ -159,7 +162,7 @@ public class MemberDAO {
                 int memberID = rs.getInt("id");
                 String memberType = rs.getString("type");
                 int numberBookIssued = rs.getInt("number_book_issued");
-                Date dateOfMembership = rs.getDate("date_of_membership");
+                LocalDate dateOfMembership = LocalDateUtil.getNullableLocalDate(rs,"date_of_membership");
                 int maxBookLimit = rs.getInt("max_book_limit");
                 String name = rs.getString("name");
                 String address = rs.getString("address");
@@ -190,9 +193,9 @@ public class MemberDAO {
                 int transactionId = rs.getInt("transaction_id");
                 int memberId = rs.getInt("member_id");
                 int bookId = rs.getInt("book_id");
-                Date dateOfIssue = rs.getDate("date_of_issue");
-                Date dueDate = rs.getDate("due_date");
-                Date returnDate = rs.getDate("return_date");
+                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs,"date_of_issue");
+                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs,"due_date");
+                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs,"return_date");
                 String status = rs.getString("status");
                 memberTransactions.add(new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status));
             }
@@ -201,6 +204,31 @@ public class MemberDAO {
             System.err.println("SQLException in getAllMemberTransactions: " + e.getMessage());
             throw new RuntimeException("Database error in getAllMemberTransactions()");
         }
+    }
+    public List<Bill> getAllMemberBills(int memberId){
+        String sql = "SELECT * FROM bills WHERE member_id = ?";
+        List<Bill>memberBills = new ArrayList<>();
+
+        try(Connection con = this.db.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, memberId);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()) {
+                int billId = rs.getInt("bill_id");
+                LocalDate date = LocalDateUtil.getNullableLocalDate(rs,"date");
+                int member_id = rs.getInt("member_id");
+                int transactionId = rs.getInt("transaction_id");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String status = rs.getString("status");
+                memberBills.add(new Bill(billId, date, member_id, transactionId, amount, status));
+            }
+            return memberBills;
+        }catch (SQLException e) {
+            System.err.println("SQLException in getAllMemberBills: " + e.getMessage());
+            throw new RuntimeException("Database error in getAllMemberBills()");
+        }
+
+
     }
 
 

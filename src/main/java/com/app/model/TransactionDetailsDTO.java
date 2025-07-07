@@ -1,6 +1,7 @@
 package com.app.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class TransactionDetailsDTO {
@@ -8,13 +9,13 @@ public class TransactionDetailsDTO {
     private String memberName;
     private String bookTitle;
     private BigDecimal bookPrice;
-    private Date dateOfIssue;
-    private Date dueDate;
-    private Date returnDate;
+    private LocalDate dateOfIssue;
+    private LocalDate dueDate;
+    private LocalDate returnDate;
     private String status;
 
     public TransactionDetailsDTO(){}
-    public TransactionDetailsDTO(int transactionId, String memberName, BigDecimal bookPrice, String bookTitle, Date dateOfIssue, Date dueDate, Date returnDate, String status) {
+    public TransactionDetailsDTO(int transactionId, String memberName, BigDecimal bookPrice, String bookTitle, LocalDate dateOfIssue, LocalDate dueDate, LocalDate returnDate, String status) {
         this.transactionId = transactionId;
         this.memberName = memberName;
         this.bookPrice = bookPrice;
@@ -57,27 +58,27 @@ public class TransactionDetailsDTO {
         this.bookPrice = bookPrice;
     }
 
-    public Date getDateOfIssue() {
+    public LocalDate getDateOfIssue() {
         return dateOfIssue;
     }
 
-    public void setDateOfIssue(Date dateOfIssue) {
+    public void setDateOfIssue(LocalDate dateOfIssue) {
         this.dateOfIssue = dateOfIssue;
     }
 
-    public Date getDueDate() {
+    public LocalDate getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(Date dueDate) {
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 
-    public Date getReturnDate() {
+    public LocalDate getReturnDate() {
         return returnDate;
     }
 
-    public void setReturnDate(Date returnDate) {
+    public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
     }
 

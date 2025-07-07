@@ -61,7 +61,7 @@ public class BookDAO {
 
         }catch (SQLException e) {
             System.err.println("SQLException in getBookById: " + e.getMessage());
-            System.out.println("Database error in getBookById()");
+            throw new RuntimeException("Database error in getBookById()");
         }
         return null;
     }

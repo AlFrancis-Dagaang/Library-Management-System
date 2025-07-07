@@ -7,6 +7,7 @@ import com.app.util.DBConnection;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,8 +25,8 @@ public class TransactionDAO {
             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, transaction.getMemberId());
             ps.setInt(2, transaction.getBookId());
-            ps.setDate(3, new java.sql.Date(transaction.getDateOfIssue().getTime()));
-            ps.setDate(4, new java.sql.Date(transaction.getDueDate().getTime()));
+            ps.setDate(3, java.sql.Date.valueOf(transaction.getDateOfIssue()));
+            ps.setDate(4, java.sql.Date.valueOf(transaction.getDueDate()));
 
             if (transaction.getReturnDate() == null) {
                 ps.setNull(5, java.sql.Types.DATE);
@@ -58,9 +59,9 @@ public class TransactionDAO {
                 int transactionId = rs.getInt("transaction_id");
                 int memberId = rs.getInt("member_id");
                 int bookId = rs.getInt("book_id");
-                Date dateOfIssue = rs.getDate("date_of_issue");
-                Date dueDate = rs.getDate("due_date");
-                Date returnDate = rs.getDate("return_date");
+                LocalDate dateOfIssue = rs.getDate("date_of_issue").toLocalDate();
+                LocalDate dueDate = rs.getDate("due_date").toLocalDate();
+                LocalDate returnDate = rs.getDate("return_date").toLocalDate();
                 String status = rs.getString("status");
 
                 return new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status);
@@ -92,9 +93,9 @@ public class TransactionDAO {
                 String memberName = rs.getString("member_name");
                 String bookTitle = rs.getString("book_title");
                 BigDecimal bookPrice = rs.getBigDecimal("book_price");
-                Date dateOfIssue = rs.getDate("date_of_issue");
-                Date dueDate = rs.getDate("due_date");
-                Date returnDate = rs.getDate("return_date");
+                LocalDate dateOfIssue = rs.getDate("date_of_issue").toLocalDate();
+                LocalDate dueDate = rs.getDate("due_date").toLocalDate();
+                LocalDate returnDate = rs.getDate("return_date").toLocalDate();
                 String status = rs.getString("transaction_status");
 
                 return new TransactionDetailsDTO(transactionId, memberName, bookPrice, bookTitle, dateOfIssue, dueDate, returnDate, status);
@@ -114,10 +115,10 @@ public class TransactionDAO {
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setInt(1, transaction.getMemberId());
             ps.setInt(2, transaction.getBookId());
-            ps.setDate(3, new java.sql.Date(transaction.getDateOfIssue().getTime()));
-            ps.setDate(4, new java.sql.Date(transaction.getDueDate().getTime()));
+            ps.setDate(3, java.sql.Date.valueOf(transaction.getDateOfIssue()));
+            ps.setDate(4, java.sql.Date.valueOf(transaction.getDueDate()));
             if (transaction.getReturnDate() != null) {
-                ps.setDate(5, new java.sql.Date(transaction.getReturnDate().getTime()));
+                ps.setDate(5, java.sql.Date.valueOf(transaction.getReturnDate()));
             }else{
                 ps.setNull(5, java.sql.Types.DATE);
             }
@@ -161,9 +162,9 @@ public class TransactionDAO {
                 int transactionId = rs.getInt("transaction_id");
                 int memberId = rs.getInt("member_id");
                 int bookId = rs.getInt("book_id");
-                Date dateOfIssue = rs.getDate("date_of_issue");
-                Date dueDate = rs.getDate("due_date");
-                Date returnDate = rs.getDate("return_date");
+                LocalDate dateOfIssue = rs.getDate("date_of_issue").toLocalDate();
+                LocalDate dueDate = rs.getDate("due_date").toLocalDate();
+                LocalDate returnDate = rs.getDate("return_date").toLocalDate();
                 String status = rs.getString("status");
                 transactions.add(new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status));
             }

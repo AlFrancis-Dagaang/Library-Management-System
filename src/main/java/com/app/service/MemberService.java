@@ -3,6 +3,7 @@ package com.app.service;
 import com.app.dao.MemberDAO;
 import com.app.exception.MemberNotFoundException;
 import com.app.exception.ResourceNotFound;
+import com.app.model.Bill;
 import com.app.model.Member;
 import com.app.model.Transaction;
 
@@ -64,6 +65,15 @@ public class MemberService {
             return memberTransactions;
         }else{
             throw new MemberNotFoundException("There is no transaction found");
+        }
+    }
+
+    public List<Bill> getAllMemberBills(int memberId){
+        List<Bill> memberBills = this.memberDAO.getAllMemberBills(memberId);
+        if(!memberBills.isEmpty()){
+            return memberBills;
+        }else{
+            throw new MemberNotFoundException("There is no bill found");
         }
     }
 
