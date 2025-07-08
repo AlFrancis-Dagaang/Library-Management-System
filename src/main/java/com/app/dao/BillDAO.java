@@ -2,6 +2,7 @@ package com.app.dao;
 
 import com.app.model.Bill;
 import com.app.util.DBConnection;
+import com.app.util.LocalDateUtil;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -23,7 +24,7 @@ public class BillDAO {
             ResultSet rs = ps.executeQuery();
             if(rs.next()){
                 int id = rs.getInt("bill_id");
-                LocalDate date = rs.getDate("date").toLocalDate();
+                LocalDate date = LocalDateUtil.getNullableLocalDate(rs, "date");
                 int memberId = rs.getInt("member_id");
                 int transactionId = rs.getInt("transaction_id");
                 BigDecimal amount = rs.getBigDecimal("amount");
@@ -72,7 +73,7 @@ public class BillDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 int id = rs.getInt("bill_id");
-                LocalDate date = rs.getDate("date").toLocalDate();
+                LocalDate date = LocalDateUtil.getNullableLocalDate(rs, "date");
                 int memberId = rs.getInt("member_id");
                 int transactionId = rs.getInt("transaction_id");
                 BigDecimal amount = rs.getBigDecimal("amount");
@@ -117,7 +118,7 @@ public class BillDAO {
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 int id = rs.getInt("bill_id");
-                LocalDate date = rs.getDate("date").toLocalDate();
+                LocalDate date = LocalDateUtil.getNullableLocalDate(rs, "date");
                 int memberId = rs.getInt("member_id");
                 int transactionId = rs.getInt("transaction_id");
                 BigDecimal amount = rs.getBigDecimal("amount");

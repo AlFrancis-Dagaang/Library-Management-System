@@ -1,15 +1,13 @@
 package com.app.dao;
-
-import com.app.model.Admin;
 import com.app.model.Transaction;
 import com.app.model.TransactionDetailsDTO;
 import com.app.util.DBConnection;
+import com.app.util.LocalDateUtil;
 
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class TransactionDAO {
@@ -59,9 +57,9 @@ public class TransactionDAO {
                 int transactionId = rs.getInt("transaction_id");
                 int memberId = rs.getInt("member_id");
                 int bookId = rs.getInt("book_id");
-                LocalDate dateOfIssue = rs.getDate("date_of_issue").toLocalDate();
-                LocalDate dueDate = rs.getDate("due_date").toLocalDate();
-                LocalDate returnDate = rs.getDate("return_date").toLocalDate();
+                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs, "date_of_issue");
+                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs, "due_date");
+                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs, "return_date");
                 String status = rs.getString("status");
 
                 return new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status);

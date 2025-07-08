@@ -227,9 +227,12 @@ public class MemberDAO {
             System.err.println("SQLException in getAllMemberBills: " + e.getMessage());
             throw new RuntimeException("Database error in getAllMemberBills()");
         }
-
-
     }
+
+
+
+
+
 
 
 
