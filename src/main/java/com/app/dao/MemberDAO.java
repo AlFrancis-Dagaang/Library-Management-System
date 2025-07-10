@@ -1,12 +1,8 @@
 package com.app.dao;
 
-import com.app.model.Bill;
 import com.app.model.Member;
-import com.app.model.Transaction;
 import com.app.util.DBConnection;
 import com.app.util.LocalDateUtil;
-
-import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,13 +18,13 @@ public class MemberDAO {
     }
 
     public Member getMemberByID(int id) {
-        String sql = "SELECT *FROM member where id = ?";
+        String sql = "SELECT *FROM members where member_id = ?";
         try(Connection conn = this.db.getConnection()){
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if(rs.next()) {
-                int memberID = rs.getInt("id");
+                int memberID = rs.getInt("member_id");
                 String type = rs.getString("type");
                 int numberBookIssued = rs.getInt("number_book_issued");
                 LocalDate dateOfMembership = LocalDateUtil.getNullableLocalDate(rs,"date_of_membership");
@@ -52,7 +48,7 @@ public class MemberDAO {
         return null;
     }
     public Member addMember(Member member) {
-        String sql = "INSERT INTO member (type, date_of_membership, number_book_issued,  max_book_limit, name, address, phone_number)" +
+        String sql = "INSERT INTO members (type, date_of_membership, number_book_issued,  max_book_limit, name, address, phone_number)" +
                 " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try(Connection conn = this.db.getConnection()){
@@ -83,13 +79,13 @@ public class MemberDAO {
     public List<Member> getAllMembers() {
         List<Member> members = new ArrayList<>();
 
-        String sql = "SELECT * FROM member";
+        String sql = "SELECT * FROM members";
 
         try(Connection con = db.getConnection()){
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
-                int memberID = rs.getInt("id");
+                int memberID = rs.getInt("member_id");
                 String type = rs.getString("type");
                 int numberBookIssued = rs.getInt("number_book_issued");
                 LocalDate dateOfMembership = LocalDateUtil.getNullableLocalDate(rs,"date_of_membership");
@@ -111,8 +107,8 @@ public class MemberDAO {
         }
     }
     public Member updateMember(Member member, int id) {
-        String sql = "UPDATE member SET name = ?, address = ?, phone_number = ?, type=?, date_of_membership= ?," +
-                "number_book_issued=?, max_book_limit=? WHERE id = ?";
+        String sql = "UPDATE members SET name = ?, address = ?, phone_number = ?, type=?, date_of_membership= ?," +
+                "number_book_issued=?, max_book_limit=? WHERE member_id = ?";
 
         try(Connection conn = this.db.getConnection()){
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -138,7 +134,7 @@ public class MemberDAO {
     }
 
     public boolean deleteMemberById(int id) {
-        String sql = "DELETE FROM member WHERE id = ?";
+        String sql = "DELETE FROM members WHERE member_id = ?";
         try(Connection conn = this.db.getConnection()){
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
@@ -152,7 +148,7 @@ public class MemberDAO {
     }
 
     public List<Member> sortMembers(String type) {
-        String sql = "SELECT * FROM member where type= ?";
+        String sql = "SELECT * FROM members where type= ?";
         List<Member>members = new ArrayList<>();
         try(Connection con = this.db.getConnection()){
             PreparedStatement ps = con.prepareStatement(sql);
@@ -181,53 +177,8 @@ public class MemberDAO {
         }
     }
 
-    public List<Transaction> getAllMemberTransactions(int memberID) {
-        String sql = "SELECT * FROM transactions WHERE member_id = ?";
-        List<Transaction>memberTransactions = new ArrayList<>();
 
-        try(Connection con = this.db.getConnection()){
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, memberID);
-            ResultSet rs = ps.executeQuery();
-            while(rs.next()) {
-                int transactionId = rs.getInt("transaction_id");
-                int memberId = rs.getInt("member_id");
-                int bookId = rs.getInt("book_id");
-                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs,"date_of_issue");
-                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs,"due_date");
-                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs,"return_date");
-                String status = rs.getString("status");
-                memberTransactions.add(new Transaction(transactionId, memberId, bookId, dateOfIssue, dueDate, returnDate, status));
-            }
-            return memberTransactions;
-        }catch (SQLException e) {
-            System.err.println("SQLException in getAllMemberTransactions: " + e.getMessage());
-            throw new RuntimeException("Database error in getAllMemberTransactions()");
-        }
-    }
-    public List<Bill> getAllMemberBills(int memberId){
-        String sql = "SELECT * FROM bills WHERE member_id = ?";
-        List<Bill>memberBills = new ArrayList<>();
 
-        try(Connection con = this.db.getConnection()){
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, memberId);
-            ResultSet rs = ps.executeQuery();
-            while(rs.next()) {
-                int billId = rs.getInt("bill_id");
-                LocalDate date = LocalDateUtil.getNullableLocalDate(rs,"date");
-                int member_id = rs.getInt("member_id");
-                int transactionId = rs.getInt("transaction_id");
-                BigDecimal amount = rs.getBigDecimal("amount");
-                String status = rs.getString("status");
-                memberBills.add(new Bill(billId, date, member_id, transactionId, amount, status));
-            }
-            return memberBills;
-        }catch (SQLException e) {
-            System.err.println("SQLException in getAllMemberBills: " + e.getMessage());
-            throw new RuntimeException("Database error in getAllMemberBills()");
-        }
-    }
 
 
 

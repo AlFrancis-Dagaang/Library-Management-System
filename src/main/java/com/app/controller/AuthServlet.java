@@ -34,7 +34,7 @@ public class AuthServlet extends HttpServlet {
                 this.authService.loginAsAdmin(admin);
                 HttpSession session = req.getSession();
                 session.setAttribute("admin", admin);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Login successful");
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Login successful", admin.getUsername());
             }
         }catch (ResourceNotFound e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());

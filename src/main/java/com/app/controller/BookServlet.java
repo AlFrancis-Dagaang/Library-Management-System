@@ -30,7 +30,7 @@ public class BookServlet extends HttpServlet {
         try{
             if(path == null || path.isEmpty()) { //-----------> /v1/lms/books "Create book"
                 Book temp = this.bookService.addBook(book);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED, temp);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_CREATED,"Successfully Created Book", temp);
             }
         }catch (RuntimeException e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -47,22 +47,22 @@ public class BookServlet extends HttpServlet {
         try{
             if(path == null || path.isEmpty()) {//-----------> /v1/lms/books "Get all book"
                 List<Book> books = this.bookService.getAllBooks();
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"Successfully Retrieve All Books", books);
             }else if(paths.length==2 && PathUtil.isNumeric(paths[1])) {//-----------> /{id} "Get book by id"
                 int bookId = Integer.parseInt(paths[1]);
                 Book book = this.bookService.getBookById(bookId);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, book);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"Successfully Retrieve A Book", book);
             }else if(paths.length==2 && paths[1].equals("sort") && typeParam != null) {//-----------> /sort?type="General Book, Book Bank, Reference Book"  "Get book by id"
                 List<Book> books = this.bookService.getBooksByType(typeParam);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", books);
             }else if(paths.length==2 && paths[1].equals("sort") && isAvailableParam != null) {//-----------> /sort?isAvailable="true/false"  "Get book by availability"
                 boolean isBookAvailable = Boolean.parseBoolean(isAvailableParam);
                 List<Book> books = this.bookService.getBooksByAvailability(isBookAvailable);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", books);
             }else if(paths.length==2 && paths[1].equals("sort") && priceParam != null) {//-----------> /sort?isPriceNull="true/false"  "Get book by price is null"
                 boolean isPriceIsNull = Boolean.parseBoolean(priceParam);
                 List<Book> books = this.bookService.getBooksByPriceIsNull(isPriceIsNull);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, books);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", books);
             }
         }catch (ResourceNotFound e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
@@ -80,7 +80,7 @@ public class BookServlet extends HttpServlet {
             if(paths.length==2 && PathUtil.isNumeric(paths[1])){ //-----------> /{id} "Update book by id"
                 int bookId = Integer.parseInt(paths[1]);
                 Book book = this.bookService.updateBook(updateBook, bookId);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, book);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", book);
             }
         }catch (ResourceNotFound e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
@@ -97,7 +97,7 @@ public class BookServlet extends HttpServlet {
             if(paths.length==2 && PathUtil.isNumeric(paths[1])){ //-----------> /{id} "Delete book by id"
                 int bookId = Integer.parseInt(paths[1]);
                 this.bookService.deleteBook(bookId);
-                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Deleted Successfully");
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Deleted Successfully", null);
             }
         }catch (ResourceNotFound e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());

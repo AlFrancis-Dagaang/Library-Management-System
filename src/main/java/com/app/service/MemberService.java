@@ -2,10 +2,8 @@ package com.app.service;
 
 import com.app.dao.MemberDAO;
 import com.app.exception.MemberNotFoundException;
-import com.app.exception.ResourceNotFound;
-import com.app.model.Bill;
 import com.app.model.Member;
-import com.app.model.Transaction;
+
 
 import java.util.List;
 
@@ -59,22 +57,5 @@ public class MemberService {
         }
     }
 
-    public List<Transaction> getMemberTransactions(int memberID){
-        List<Transaction> memberTransactions = this.memberDAO.getAllMemberTransactions(memberID);
-        if(!memberTransactions.isEmpty()){
-            return memberTransactions;
-        }else{
-            throw new MemberNotFoundException("There is no transaction found");
-        }
-    }
-
-    public List<Bill> getAllMemberBills(int memberId){
-        List<Bill> memberBills = this.memberDAO.getAllMemberBills(memberId);
-        if(!memberBills.isEmpty()){
-            return memberBills;
-        }else{
-            throw new MemberNotFoundException("There is no bill found");
-        }
-    }
 
 }

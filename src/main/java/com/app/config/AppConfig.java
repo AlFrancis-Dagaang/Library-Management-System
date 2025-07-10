@@ -15,14 +15,13 @@ public class AppConfig {
         return new BookService(new BookDAO(dbConnection));
     }
 
-    public static TransactionService getTransactionService(){
-        return new TransactionService(new TransactionDAO(dbConnection), new BookDAO(dbConnection), new MemberDAO(dbConnection), new BillDAO(dbConnection));
-    }
     public static AuthService getAuthService(){
         return new AuthService(new AuthDAO(dbConnection));
     }
 
-    public static BillService getBillService(){
-        return new BillService(new BillDAO(dbConnection), new BookDAO(dbConnection), new TransactionDAO(dbConnection));
+    public static BookTransactionService getBookIssueService(){
+        return new BookTransactionService(new BookTransactionDAO(dbConnection), new BookDAO(dbConnection), new MemberDAO(dbConnection), new BookAgreementDAO(dbConnection));
     }
+
+
 }
