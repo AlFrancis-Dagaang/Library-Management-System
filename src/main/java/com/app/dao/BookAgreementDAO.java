@@ -63,4 +63,17 @@ public class BookAgreementDAO {
             throw new RuntimeException("SQLException: " + e.getMessage());
         }
     }
+
+    public boolean deleteBookAgreement(int bookAgreementId) {
+        String sql = "DELETE FROM book_agreement WHERE agreement_id=?";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, bookAgreementId);
+            return ps.executeUpdate() > 0;
+        }catch (SQLException e){
+            System.err.println("SQLException: " + e.getMessage());
+            throw new RuntimeException("SQLException: " + e.getMessage());
+        }
+    }
 }
