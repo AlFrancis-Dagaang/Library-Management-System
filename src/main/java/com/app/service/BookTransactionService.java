@@ -6,10 +6,7 @@ import com.app.dao.BookDAO;
 import com.app.dao.BookTransactionDAO;
 import com.app.dao.MemberDAO;
 import com.app.exception.ResourceNotFound;
-import com.app.model.Book;
-import com.app.model.BookAgreement;
-import com.app.model.BookTransaction;
-import com.app.model.Member;
+import com.app.model.*;
 import com.app.util.BookBankUtil;
 
 import java.math.BigDecimal;
@@ -46,8 +43,6 @@ public class BookTransactionService {
 
         book.setAvailable(false);
         member.addBookIssued();
-
-
 
         LocalDate dueDate = PolicyConfig.calculateDueDate(book);
 
@@ -102,5 +97,41 @@ public class BookTransactionService {
             throw new ResourceNotFound("Transaction not found");
         }
         return getTransaction;
+    }
+
+    public BookTransactionAgreementDetailsDTO completeBookTransactionAgreement(int transactionId) {
+
+        boolean successCompletingTheAgreement = this.bookTransactionDAO.completeTheBookAgreement(transactionId);
+
+        if(!successCompletingTheAgreement) {
+            throw new RuntimeException("Something went wrong while completing the book agreement");
+        }
+        return this.bookTransactionDAO.getBookTransactionAgreementDetails(transactionId);
+    }
+
+    public BookTransactionDetailsDTO getBookTransactionDetails(int transactionId) {
+        BookTransactionDetailsDTO transactionDetails = this.bookTransactionDAO.getBookTransactionDetails(transactionId);
+
+        if(transactionDetails == null) {
+            throw new ResourceNotFound("Transaction not found");
+        }
+
+        return transactionDetails;
+    }
+
+    public BookTransactionAgreementDetailsDTO getBookTransactionAgreementDetails(int transactionId) {
+        BookTransactionAgreementDetailsDTO agreementDetails = this.bookTransactionDAO.getBookTransactionAgreementDetails(transactionId);
+        if(agreementDetails == null) {
+            throw new ResourceNotFound("Transaction not found");
+        }
+        return agreementDetails;
+    }
+
+    public BookTransaction cancelBookAgreement(int transactionId, int agreementId) {
+        boolean successfullyDeletedAgreement = this.bookAgreementDAO.deleteBookAgreement(agreementId);
+        if (!successfullyDeletedAgreement) {
+            throw new RuntimeException("Something went wrong while deleting the book agreement");
+        }
+        return this.bookTransactionDAO.cancelBookTransaction(transactionId);
     }
 }
