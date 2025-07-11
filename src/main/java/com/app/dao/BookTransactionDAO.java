@@ -1,9 +1,13 @@
 package com.app.dao;
 
+import com.app.model.BookAgreement;
 import com.app.model.BookTransaction;
+import com.app.model.BookTransactionAgreementDetailsDTO;
+import com.app.model.BookTransactionDetailsDTO;
 import com.app.util.DBConnection;
 import com.app.util.LocalDateUtil;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
 
@@ -68,4 +72,124 @@ public class BookTransactionDAO {
         }
         return null;
     }
+
+    public boolean completeTheBookAgreement(int transactionId) {
+        String transactionSql = "UPDATE book_transactions t\n" +
+                "JOIN book_agreement a ON t.transaction_id = a.transaction_id\n" +
+                "SET \n" +
+                "  t.status = 'ISSUED',\n" +
+                "  a.active = TRUE\n" +
+                "WHERE t.transaction_id = ?";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(transactionSql);
+            ps.setInt(1, transactionId);
+            return ps.executeUpdate() > 0;
+        }catch (SQLException e){
+            System.err.println("Error in completeTheBookAgreement: " + e.getMessage());
+            throw new RuntimeException("Error in completeTheBookAgreement: " + e.getMessage());
+        }
+    }
+
+    public BookTransactionDetailsDTO getBookTransactionDetails(int transactionId) {
+        String sql = "SELECT t.transaction_id, m.member_id, b.book_id, m.name, m.type AS member_type, b.title, t.date_of_issue, \n" +
+                "t.due_date,t.return_date, b.price, b.type AS  book_type, t.status\n" +
+                "FROM book_transactions t \n" +
+                "JOIN members m ON t.member_id = m.member_id\n" +
+                "JOIN books b ON t.book_id = b.book_id\n" +
+                "WHERE t.transaction_id = ?";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, transactionId);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                int transId = rs.getInt("transaction_id");
+                int memberId = rs.getInt("member_id");
+                int bookId = rs.getInt("book_id");
+                String name = rs.getString("name");
+                String memberType = rs.getString("member_type");
+                String title = rs.getString("title");
+                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs, "date_of_issue");
+                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs, "due_date");
+                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs, "return_date");
+                BigDecimal price = BigDecimal.valueOf(rs.getDouble("price"));
+                String bookType = rs.getString("book_type");
+                String status = rs.getString("status");
+
+                return new BookTransactionDetailsDTO(transId, memberId, bookId, name, memberType,
+                       title, dateOfIssue, dueDate, returnDate, price, bookType, status);
+
+            }
+
+        }catch (SQLException e){
+            System.err.println("Error in getBookTransactionDetails: " + e.getMessage());
+            throw new RuntimeException("Error in getBookTransactionDetails: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public BookTransactionAgreementDetailsDTO getBookTransactionAgreementDetails(int transactionId) {
+        String sql = "SELECT t.transaction_id, m.member_id, b.book_id,a.agreement_id, m.name ,m.type AS member_type, b.title, t.date_of_issue, t.due_date,t.return_date, a.agreement_date, b.price, a.service_fee, a.total_amount, b.type AS book_type, t.status, a.active\n" +
+                "FROM book_transactions t \n" +
+                "JOIN members m ON t.member_id = m.member_id\n" +
+                "JOIN books b ON t.book_id = b.book_id\n" +
+                "JOIN book_agreement a ON t.transaction_id = a.transaction_id\n" +
+                "WHERE t.transaction_id = ?";
+
+        try (Connection con = this.dbConnection.getConnection()) {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, transactionId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int transId = rs.getInt("transaction_id");
+                int memberId = rs.getInt("member_id");
+                int bookId = rs.getInt("book_id");
+                int agreementId = rs.getInt("agreement_id");
+                String name = rs.getString("name");
+                String memberType = rs.getString("member_type");
+                String title = rs.getString("title");
+                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs, "date_of_issue");
+                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs, "due_date");
+                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs, "return_date");
+                LocalDate agreementDate = LocalDateUtil.getNullableLocalDate(rs, "agreement_date");
+                BigDecimal price = BigDecimal.valueOf(rs.getDouble("price"));
+                BigDecimal serviceFee = BigDecimal.valueOf(rs.getDouble("service_fee"));
+                BigDecimal totalAmount = BigDecimal.valueOf(rs.getDouble("total_amount"));
+                String bookType = rs.getString("book_type");
+                String status = rs.getString("status");
+                boolean active = rs.getBoolean("active");
+
+                return new BookTransactionAgreementDetailsDTO(transId, memberId, bookId, agreementId, name, memberType, title, dateOfIssue, dueDate, returnDate, agreementDate, price, serviceFee, totalAmount, bookType, status, active);
+
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error in getBookTransactionAgreementDetails: " + e.getMessage());
+            throw new RuntimeException("Error in getBookTransactionAgreementDetails: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public BookTransaction cancelBookTransaction(int transactionId) {
+        String sql = "UPDATE book_transactions SET status ='CANCELLED' WHERE transaction_id = ?";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, transactionId);
+            if(ps.executeUpdate() > 0){
+                return this.getIssueTransactionById(transactionId);
+            }else{
+                throw new RuntimeException("Error in cancelBookTransaction: " + transactionId);
+            }
+        }catch (SQLException e){
+            System.err.println("Error in cancelBookTransaction: " + e.getMessage());
+            throw new RuntimeException("Error in cancelBookTransaction: " + e.getMessage());
+        }
+    }
+
+
+
 }
