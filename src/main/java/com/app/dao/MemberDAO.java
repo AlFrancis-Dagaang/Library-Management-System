@@ -1,5 +1,6 @@
 package com.app.dao;
 
+import com.app.model.BookTransaction;
 import com.app.model.Member;
 import com.app.util.DBConnection;
 import com.app.util.LocalDateUtil;
@@ -177,7 +178,34 @@ public class MemberDAO {
         }
     }
 
+    public List<BookTransaction> getAllMemberTransactions(int memberId){
+        String sql = "SELECT * FROM book_transactions WHERE member_id = ?";
+        List <BookTransaction> memberTransactions = new ArrayList<>();
 
+        try(Connection con = this.db.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, memberId);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()) {
+                int issueId = rs.getInt("transaction_id");
+                int id = rs.getInt("member_id");
+                int bookId = rs.getInt("book_id");
+                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs, "date_of_issue");
+                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs, "due_date");
+                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs, "return_date");
+                String status = rs.getString("status");
+                String bookType = rs.getString("book_type");
+
+                memberTransactions.add(new  BookTransaction(id,memberId, bookId, dateOfIssue, dueDate, returnDate, status, bookType));
+            }
+
+            return memberTransactions;
+        }catch (SQLException e) {
+            System.err.println("SQLException in getAllMemberTransactions: " + e.getMessage());
+            throw new RuntimeException("Database error in getAllMemberTransactions()");
+        }
+
+    }
 
 
 
