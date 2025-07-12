@@ -10,6 +10,8 @@ import com.app.util.LocalDateUtil;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookTransactionDAO {
     private final DBConnection dbConnection;
@@ -46,6 +48,35 @@ public class BookTransactionDAO {
             throw new RuntimeException("Error creating issue transaction: " + e.getMessage());
         }
     }
+
+    public List<BookTransaction> getAllBookTransactions() {
+        String sql = "SELECT * FROM book_transactions";
+        List<BookTransaction> bookTransactions = new ArrayList<BookTransaction>();
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                int issueId = rs.getInt("transaction_id");
+                int memberId = rs.getInt("member_id");
+                int bookId = rs.getInt("book_id");
+                LocalDate dateOfIssue = LocalDateUtil.getNullableLocalDate(rs, "date_of_issue");
+                LocalDate dueDate = LocalDateUtil.getNullableLocalDate(rs, "due_date");
+                LocalDate returnDate = LocalDateUtil.getNullableLocalDate(rs, "return_date");
+                String status = rs.getString("status");
+                String bookType = rs.getString("book_type");
+
+                bookTransactions.add(new  BookTransaction(issueId,memberId, bookId, dateOfIssue, dueDate, returnDate, status, bookType));
+            }
+            return bookTransactions;
+
+        }catch (SQLException e){
+            System.err.println("Error getting book transactions: " + e.getMessage());
+            throw new RuntimeException("Error getting book transactions: " + e.getMessage());
+        }
+    }
+
+
     public BookTransaction getIssueTransactionById(int id) {
         String sql = "SELECT * FROM book_transactions WHERE transaction_id = ?";
         try(Connection con = this.dbConnection.getConnection()){
