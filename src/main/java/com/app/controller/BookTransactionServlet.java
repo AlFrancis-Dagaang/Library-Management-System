@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.config.AppConfig;
 import com.app.exception.ResourceNotFound;
+import com.app.model.BookAgreement;
 import com.app.model.BookTransaction;
 import com.app.model.BookTransactionAgreementDetailsDTO;
 import com.app.model.BookTransactionDetailsDTO;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/v1/lms/book-transactions/*")
 public class BookTransactionServlet extends HttpServlet {
@@ -61,7 +63,10 @@ public class BookTransactionServlet extends HttpServlet {
         String [] paths = PathUtil.getPaths(path);
 
         try{
-            if (paths.length==2 && PathUtil.isNumeric(paths[1] ) ){ // /{id}   "Get transaction without details"
+            if(path == null || path.isEmpty()){
+                List<BookTransaction> allTransactions = this.bookTransactionService.getAllTransactions();
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", allTransactions);
+            }else if (paths.length==2 && PathUtil.isNumeric(paths[1] ) ){ // /{id}   "Get transaction without details"
                 int transactionId = Integer.parseInt(paths[1]);
                 BookTransaction getTransaction = this.bookTransactionService.getTransactionById(transactionId);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"", getTransaction);
@@ -73,6 +78,10 @@ public class BookTransactionServlet extends HttpServlet {
                 int transactionId = Integer.parseInt(paths[1]);
                 BookTransactionAgreementDetailsDTO agreementDetailsDTO = this.bookTransactionService.getBookTransactionAgreementDetails(transactionId);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", agreementDetailsDTO);
+            }else if(paths.length==3 && PathUtil.isNumeric(paths[1]) && paths[2].equals("agreement")){ // /{id}/agreement
+                int transactionId = Integer.parseInt(paths[1]);
+                BookAgreement agreement = this.bookTransactionService.getBookAgreementByTransactionId(transactionId);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", agreement);
             }
         }catch (IllegalArgumentException e){
             JsonUtil.writeError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());

@@ -11,6 +11,7 @@ import com.app.util.BookBankUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class BookTransactionService {
     private final BookTransactionDAO bookTransactionDAO;
@@ -99,6 +100,17 @@ public class BookTransactionService {
         return getTransaction;
     }
 
+    public List<BookTransaction> getAllTransactions() {
+        List<BookTransaction> transactions = this.bookTransactionDAO.getAllBookTransactions();
+
+        if(transactions == null) {
+            throw new ResourceNotFound("Transactions are empty");
+        }
+
+        return transactions;
+
+    }
+
     public BookTransactionAgreementDetailsDTO completeBookTransactionAgreement(int transactionId) {
 
         boolean successCompletingTheAgreement = this.bookTransactionDAO.completeTheBookAgreement(transactionId);
@@ -134,4 +146,16 @@ public class BookTransactionService {
         }
         return this.bookTransactionDAO.cancelBookTransaction(transactionId);
     }
+
+    public BookAgreement getBookAgreementByTransactionId(int transactionId) {
+        BookAgreement agreement = this.bookAgreementDAO.getBookAgreementByTransactionId(transactionId);
+
+        if(agreement == null) {
+            throw new ResourceNotFound("Agreement not found");
+        }
+
+        return agreement;
+    }
+
+
 }
