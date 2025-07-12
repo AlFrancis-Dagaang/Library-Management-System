@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.config.AppConfig;
 import com.app.exception.MemberNotFoundException;
+import com.app.model.BookTransaction;
 import com.app.model.Member;
 import com.app.service.MemberService;
 import com.app.util.JsonUtil;
@@ -41,6 +42,10 @@ public class MemberServlet extends HttpServlet {
             }else if (paths.length==2 && paths[1].equals("sort") && typeParam != null){  //----------> /sort?type={type} "Sorting base on member types"
                 List<Member> members = this.memberService.getSortMembers(typeParam);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", members);
+            }else if(paths.length==3 && PathUtil.isNumeric(paths[1]) && "book-transactions".equals(paths[2])){ //--------> /{id}/book-transactions
+                int memberId = Integer.parseInt(paths[1]);
+                List<BookTransaction> transactions = this.memberService.getAllMemberTransactions(memberId);
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", transactions);
             }
         }catch (MemberNotFoundException e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
