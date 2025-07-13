@@ -103,6 +103,10 @@ public class Member {
         numberOfBookIssued++;
     }
 
+    public void removeBookIssued() {
+        numberOfBookIssued--;
+    }
+
     @Override
     public String toString() {
         return "Member{" +
