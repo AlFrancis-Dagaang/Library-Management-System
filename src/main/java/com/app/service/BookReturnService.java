@@ -2,10 +2,7 @@ package com.app.service;
 
 import com.app.config.PolicyConfig;
 import com.app.dao.*;
-import com.app.model.Book;
-import com.app.model.BookReturnStatus;
-import com.app.model.BookTransaction;
-import com.app.model.Member;
+import com.app.model.*;
 import com.app.util.BookBankUtil;
 
 import java.math.BigDecimal;
@@ -24,7 +21,7 @@ public class BookReturnService {
         this.bookAgreementDAO = bookAgreementDAO;
     }
 
-    public BookReturnStatus createBookReturn(BookReturnStatus bookReturn) {
+    public BookReturnBill createBookReturn(BookReturnStatus bookReturn) {
         BookTransaction bookTransaction = this.bookTransactionDAO.getIssueTransactionById(bookReturn.getTransactionId());
         Book book = this.bookDAO.getBookById(bookTransaction.getBookId());
 
@@ -56,6 +53,10 @@ public class BookReturnService {
         if("BOOK)_BANK".equals(returnType)) {
             BigDecimal refundAmount = book.getPrice().subtract(penaltyAmount);
             bookReturn.setRefundAmount(refundAmount);
+            BookReturnStatus createdReturnStatus = this.bookReturnDAO.createBookReturnStatus(bookReturn);
+
+            BookReturnBill returnBill = new BookReturnBill(createdReturnStatus.getReturnStatusId(), penaltyAmount, refundAmount, "PENDING", returnDate );
+
 
         }
 
