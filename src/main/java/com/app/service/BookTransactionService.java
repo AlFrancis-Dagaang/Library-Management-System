@@ -139,12 +139,28 @@ public class BookTransactionService {
         return agreementDetails;
     }
 
-    public BookTransaction cancelBookAgreement(int transactionId, int agreementId) {
-        boolean successfullyDeletedAgreement = this.bookAgreementDAO.deleteBookAgreement(agreementId);
+    public BookTransaction cancelBookAgreement(int transactionId) {
+        boolean successfullyDeletedAgreement = this.bookAgreementDAO.deleteBookAgreement(transactionId);
         if (!successfullyDeletedAgreement) {
             throw new RuntimeException("Something went wrong while deleting the book agreement");
         }
-        return this.bookTransactionDAO.cancelBookTransaction(transactionId);
+        BookTransaction transactionTemp = this.bookTransactionDAO.getIssueTransactionById(transactionId);
+        Member memberTemp = this.memberDAO.getMemberByID(transactionTemp.getMember_id());
+        Book bookTemp = this.bookDAO.getBookById(transactionTemp.getBookId());
+
+        memberTemp.removeBookIssued();
+        bookTemp.setAvailable(true);
+
+        BookTransaction updatedTransaction = this.bookTransactionDAO.cancelBookTransaction(transactionId);
+
+        if(updatedTransaction == null) {
+            throw new RuntimeException("Something went wrong while cancelling the book transaction");
+        }
+
+        this.bookDAO.updateBook(bookTemp, bookTemp.getBookId());
+        this.memberDAO.updateMember(memberTemp, memberTemp.getMemberId());
+
+        return updatedTransaction;
     }
 
     public BookAgreement getBookAgreementByTransactionId(int transactionId) {
