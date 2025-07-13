@@ -36,20 +36,17 @@ public class BookTransactionServlet extends HttpServlet {
         System.out.println(transaction);
 
         try{
-            if(path == null || path.isEmpty()){
+            if(path == null || path.isEmpty()){ // "Create Transaction for both General and Book Bank"
                 Object transactionalObject = this.bookTransactionService.createTransaction(transaction);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_CREATED, "", transactionalObject);
             }else if(paths.length==3 && PathUtil.isNumeric(paths[1]) && paths[2].equals("complete-transaction")){ // /{id}/complete-transaction
                 int transactionId = Integer.parseInt(paths[1]);
                 BookTransactionAgreementDetailsDTO bookTransactionAgreementDetailsDTO = this.bookTransactionService.completeBookTransactionAgreement(transactionId);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", bookTransactionAgreementDetailsDTO);
-            } else if (paths.length==4 && PathUtil.isNumeric(paths[1]) &&PathUtil.isNumeric(paths[3]) && paths[2].equals("cancel-transaction")) { // /{transactionId}/cancel-transaction/{agreementId}
+            } else if (paths.length==3 && PathUtil.isNumeric(paths[1]) && paths[2].equals("cancel-agreement")) { // /{id}/cancel-transaction
                 int transactionId = Integer.parseInt(paths[1]);
-                int agreementId = Integer.parseInt(paths[3]);
-
-                BookTransaction bookCancelledTransaction = this.bookTransactionService.cancelBookAgreement(transactionId, agreementId);
+                BookTransaction bookCancelledTransaction = this.bookTransactionService.cancelBookAgreement(transactionId);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", bookCancelledTransaction);
-
             }
         }catch (IllegalArgumentException e){
             JsonUtil.writeError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
