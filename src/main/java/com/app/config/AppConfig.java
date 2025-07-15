@@ -23,5 +23,9 @@ public class AppConfig {
         return new BookTransactionService(new BookTransactionDAO(dbConnection), new BookDAO(dbConnection), new MemberDAO(dbConnection), new BookAgreementDAO(dbConnection));
     }
 
+    public static BookReturnService getBookReturnService(){
+        return new BookReturnService(new BookReturnDAO(dbConnection), new BookDAO(dbConnection), new BookTransactionDAO(dbConnection), new BookAgreementDAO(dbConnection), new BookReturnBillDAO(dbConnection));
+    }
+
 
 }
