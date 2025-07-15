@@ -17,8 +17,8 @@ public class BookTransaction {
         this.memberId = member_id;
         this.bookId = bookId;
         this.dateOfIssue = dateOfIssue;
-        this.dueDate = returnDate;
-        this.returnDate = dateOfDue;
+        this.dueDate = dateOfDue;
+        this.returnDate = returnDate;
         this.status = status;
         this.bookType = bookType;
     }
