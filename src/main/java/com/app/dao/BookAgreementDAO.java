@@ -101,4 +101,22 @@ public class BookAgreementDAO {
         }
         return null;
     }
+
+    public BookAgreement updateBookAgreement(BookAgreement bookAgreement, int agreementId) {
+        String sql = "UPDATE book_agreement SET active = ? WHERE agreement_id=?";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setBoolean(1, bookAgreement.isActive());
+            ps.setInt(2, agreementId);
+            if(ps.executeUpdate() > 0){
+                return getBookAgreementById(agreementId);
+            }
+        }catch (SQLException e){
+            System.err.println("SQLException: " + e.getMessage());
+            throw new RuntimeException("SQLException: " + e.getMessage());
+        }
+
+        return null;
+    }
 }
