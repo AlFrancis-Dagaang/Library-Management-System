@@ -222,5 +222,25 @@ public class BookTransactionDAO {
     }
 
 
+    public BookTransaction updateBookTransaction (BookTransaction transaction, int transactionId) {
+        String sql = "UPDATE book_transactions SET return_date = ?, status = ? WHERE transaction_id = ?";
+
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setDate(1, java.sql.Date.valueOf(transaction.getReturnDate()));
+            ps.setString(2, transaction.getStatus());
+            ps.setInt(3, transactionId);
+            if(ps.executeUpdate() > 0){
+                return this.getIssueTransactionById(transactionId);
+            }else {
+                throw new RuntimeException("Error in updateBookTransaction: " + transactionId);
+            }
+        }catch (SQLException e){
+            System.err.println("Error in updateBookTransaction: " + e.getMessage());
+            throw new RuntimeException("Error in updateBookTransaction: " + e.getMessage());
+        }
+    }
+
+
 
 }
