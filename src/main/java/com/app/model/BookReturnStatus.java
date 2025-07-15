@@ -6,7 +6,6 @@ import java.time.LocalDate;
 public class BookReturnStatus {
     private int returnStatusId;
     private int transactionId;
-    private int agreementId;
     private String returnType;
     private LocalDate returnDate;
     private String bookCondition;
@@ -15,10 +14,11 @@ public class BookReturnStatus {
     private BigDecimal refundAmount;
     private String librarianNotes;
 
-    public BookReturnStatus(int returnStatusId, int transactionId, int agreementId, String returnType, LocalDate returnDate, String bookCondition, String returnTimeline, BigDecimal penaltyAmount, BigDecimal refundAmount, String librarianNotes) {
+    public BookReturnStatus() {}
+
+    public BookReturnStatus(int returnStatusId, int transactionId, String returnType, LocalDate returnDate, String bookCondition, String returnTimeline, BigDecimal penaltyAmount, BigDecimal refundAmount, String librarianNotes) {
         this.returnStatusId = returnStatusId;
         this.transactionId = transactionId;
-        this.agreementId = agreementId;
         this.returnType = returnType;
         this.returnDate = returnDate;
         this.bookCondition = bookCondition;
@@ -34,11 +34,28 @@ public class BookReturnStatus {
         this.returnTimeline = returnTimeline;
         this.librarianNotes = librarianNotes;
         this.transactionId = transactionId;
-        this.agreementId = agreementId;
+
     }
 
     public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
+    }
+
+    public void setReturnStatusId(int returnStatusId) {
+        this.returnStatusId = returnStatusId;
+    }
+
+    public void setTransactionId(int transactionId) {
+        this.transactionId = transactionId;
+    }
+
+
+    public void setBookCondition(String bookCondition) {
+        this.bookCondition = bookCondition;
+    }
+
+    public void setLibrarianNotes(String librarianNotes) {
+        this.librarianNotes = librarianNotes;
     }
 
     public void setReturnTimeline(String returnTimeline) {
@@ -65,9 +82,7 @@ public class BookReturnStatus {
         return transactionId;
     }
 
-    public int getAgreementId() {
-        return agreementId;
-    }
+
 
     public String getReturnType() {
         return returnType;
@@ -96,4 +111,19 @@ public class BookReturnStatus {
     public String getLibrarianNotes() {
         return librarianNotes;
     }
+    @Override
+    public String toString() {
+        return "BookReturnStatus{" +
+                "returnStatusId=" + returnStatusId +
+                ", transactionId=" + transactionId +
+                ", returnType='" + returnType + '\'' +
+                ", returnDate=" + returnDate +
+                ", bookCondition='" + bookCondition + '\'' +
+                ", returnTimeline='" + returnTimeline + '\'' +
+                ", penaltyAmount=" + penaltyAmount +
+                ", refundAmount=" + refundAmount +
+                ", librarianNotes='" + librarianNotes + '\'' +
+                '}';
+    }
+
 }
