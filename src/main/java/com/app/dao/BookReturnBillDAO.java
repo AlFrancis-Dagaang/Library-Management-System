@@ -14,7 +14,7 @@ public class BookReturnBillDAO {
         this.db = db;
     }
 
-    public BookReturnBill bookReturnBill(BookReturnBill returnBill) {
+    public BookReturnBill createBookReturnBill(BookReturnBill returnBill) {
         String sql = "INSERT INTO book_return_bill(return_status_id, total_paid," +
                 "penalty_amount, refund_amount, status, bill_date) VALUES (?,?,?,?,?,?)";
 
@@ -54,7 +54,7 @@ public class BookReturnBillDAO {
                 BigDecimal totalPaid = rs.getBigDecimal("total_paid");
                 BigDecimal penaltyAmount = rs.getBigDecimal("penalty_amount");
                 BigDecimal refundAmount = rs.getBigDecimal("refund_amount");
-                String billStatus = rs.getString("bill_status");
+                String billStatus = rs.getString("status");
                 LocalDate billDate = LocalDateUtil.getNullableLocalDate(rs, "bill_date");
 
                 return new BookReturnBill(billId, returnStatusId, totalPaid, penaltyAmount, refundAmount, billStatus, billDate);
