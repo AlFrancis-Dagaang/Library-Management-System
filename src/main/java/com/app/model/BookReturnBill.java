@@ -12,6 +12,7 @@ public class BookReturnBill {
     private String billStatus;
     private LocalDate billDate;
 
+    //Constuctor for creating BookReturnBill in DAO
     public BookReturnBill(int billId, int returnStatusId, BigDecimal totalPaid, BigDecimal penaltyAmount, BigDecimal refundAmount, String billStatus, LocalDate billDate) {
         this.billId = billId;
         this.returnStatusId = returnStatusId;
@@ -22,10 +23,21 @@ public class BookReturnBill {
         this.billDate = billDate;
     }
 
-    public BookReturnBill(int returnStatusId, BigDecimal penaltyAmount, BigDecimal refundAmount, String billStatus, LocalDate billDate) {
+    //Constructor for creating Book Bank
+    public BookReturnBill( int returnStatusId, BigDecimal totalPaid, BigDecimal penaltyAmount, BigDecimal refundAmount, String billStatus, LocalDate billDate) {
+
         this.returnStatusId = returnStatusId;
+        this.totalPaid = totalPaid;
         this.penaltyAmount = penaltyAmount;
         this.refundAmount = refundAmount;
+        this.billStatus = billStatus;
+        this.billDate = billDate;
+    }
+
+    //Constructor for creating General Book
+    public BookReturnBill(int returnStatusId, BigDecimal penaltyAmount, String billStatus, LocalDate billDate) {
+        this.returnStatusId = returnStatusId;
+        this.penaltyAmount = penaltyAmount;
         this.billStatus = billStatus;
         this.billDate = billDate;
     }
