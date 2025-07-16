@@ -24,7 +24,14 @@ public class BookReturnService {
     }
 
     public Object processBookReturn(BookReturnStatus bookReturn) {
+
+
         BookTransaction bookTransaction = this.bookTransactionDAO.getIssueTransactionById(bookReturn.getTransactionId());
+
+        if(bookTransaction.getStatus().equals("RETURNED") || bookTransaction.getStatus().equals("CANCELLED")) {
+            throw new IllegalArgumentException("Book is either RETURNED or CANCELLED");
+        }
+
         Book book = this.bookDAO.getBookById(bookTransaction.getBookId());
 
         BookAgreement bookAgreement = this.bookAgreementDAO.getBookAgreementByTransactionId(bookTransaction.getIssueId());
@@ -75,7 +82,7 @@ public class BookReturnService {
             this.bookTransactionDAO.updateBookTransaction(bookTransaction, bookTransaction.getIssueId());
             this.bookAgreementDAO.updateBookAgreement(bookAgreement, bookAgreement.getAgreementId());
 
-            BookReturnBill returnBill = new BookReturnBill(createdReturnStatus.getReturnStatusId(),totalAmount, penaltyAmount, refundAmount, "PENDING", returnDate );
+            BookReturnBill returnBill = new BookReturnBill(createdReturnStatus.getReturnStatusId(),BigDecimal.ZERO, penaltyAmount, refundAmount, "PENDING", returnDate );
 
             return this.bookReturnBillDAO.createBookReturnBill(returnBill);
 
