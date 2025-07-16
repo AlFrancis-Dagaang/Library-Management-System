@@ -70,6 +70,22 @@ public class BookReturnBillDAO {
         return null;
     }
 
+    public void updateBookReturnBill(BookReturnBill returnBill) {
+        String sql = "UPDATE book_return_bill SET total_paid = ?, status = ? WHERE bill_id = ?";
+
+        try(Connection con = this.db.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setBigDecimal(1, returnBill.getTotalPaid());
+            ps.setString(2, returnBill.getBillStatus());
+            ps.setInt(3, returnBill.getBillId());
+            ps.executeUpdate();
+
+        }catch (SQLException e){
+            System.err.println("SQLException in BookReturnBillDAO: " + e.getMessage());
+            throw new RuntimeException("SQLException in BookReturnBillDAO: " + e.getMessage());
+        }
+    }
+
 
 
 
