@@ -5,6 +5,7 @@ import com.app.exception.ResourceNotFound;
 import com.app.model.*;
 import com.app.service.BookReturnService;
 import com.app.service.BookTransactionService;
+import com.app.service.PaymentTransactionService;
 import com.app.util.JsonUtil;
 import com.app.util.PathUtil;
 import jakarta.servlet.ServletException;
@@ -22,19 +23,19 @@ public class BookTransactionServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private BookTransactionService bookTransactionService;
     private BookReturnService bookReturnService;
+    private PaymentTransactionService paymentTransactionService;
 
     @Override
     public void init(){
 
         this.bookTransactionService = AppConfig.getBookIssueService();
         this.bookReturnService = AppConfig.getBookReturnService();
+        this.paymentTransactionService = AppConfig.getPaymentTransactionService();
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
         String [] paths = PathUtil.getPaths(path);
-
-
 
         try{
             if(path == null || path.isEmpty()){ // "Create Transaction for both General and Book Bank"
@@ -53,6 +54,11 @@ public class BookTransactionServlet extends HttpServlet {
                 BookReturnStatus returnBook = JsonUtil.parse(request, BookReturnStatus.class);
                 Object bookReturned = this.bookReturnService.processBookReturn(returnBook);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", bookReturned);
+            }else if (paths.length==3 && paths[1].equals("bill") && paths[2].equals("payment-transaction")) {// /bill/payment-transaction
+                PaymentTransaction paymentTransaction = JsonUtil.parse(request, PaymentTransaction.class);
+                System.out.println(paymentTransaction);
+                PaymentTransaction createdPaymentTransaction = this.paymentTransactionService.createPaymentTransaction(paymentTransaction);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", createdPaymentTransaction);
             }
         }catch (IllegalArgumentException e){
             JsonUtil.writeError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
