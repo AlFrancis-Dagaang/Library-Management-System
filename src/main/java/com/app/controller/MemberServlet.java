@@ -39,8 +39,8 @@ public class MemberServlet extends HttpServlet {
                 Member member = memberService.getMemberByID(memberId);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", member);
 
-            }else if (paths.length==2 && paths[1].equals("sort") && typeParam != null){  //----------> /sort?type={type} "Sorting base on member types"
-                List<Member> members = this.memberService.getSortMembers(typeParam);
+            }else if (paths.length==2 && paths[1].equals("filter") && typeParam != null){  //----------> /filter?type={type} "filtering base on member types"
+                List<Member> members = this.memberService.getFilterMembers(typeParam);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK,"", members);
             }else if(paths.length==3 && PathUtil.isNumeric(paths[1]) && "book-transactions".equals(paths[2])){ //--------> /{id}/book-transactions
                 int memberId = Integer.parseInt(paths[1]);

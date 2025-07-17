@@ -49,8 +49,8 @@ public class MemberService {
 
     }
 
-    public List<Member> getSortMembers(String type){
-        List <Member> memberList = this.memberDAO.sortMembers(type);
+    public List<Member> getFilterMembers(String type){
+        List <Member> memberList = this.memberDAO.filterMembers(type);
         if(!memberList.isEmpty()){
             return memberList;
         }else{

@@ -148,7 +148,7 @@ public class MemberDAO {
 
     }
 
-    public List<Member> sortMembers(String type) {
+    public List<Member> filterMembers(String type) {
         String sql = "SELECT * FROM members where type= ?";
         List<Member>members = new ArrayList<>();
         try(Connection con = this.db.getConnection()){
