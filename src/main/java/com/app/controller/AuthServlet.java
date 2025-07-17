@@ -35,6 +35,10 @@ public class AuthServlet extends HttpServlet {
                 HttpSession session = req.getSession();
                 session.setAttribute("admin", admin);
                 JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Login successful", admin.getUsername());
+            }else if(path.equals("/logout")){
+                HttpSession session = req.getSession();
+                session.invalidate();
+                JsonUtil.writeOk(resp, HttpServletResponse.SC_OK, "Logout successful", null);
             }
         }catch (ResourceNotFound e){
             JsonUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
