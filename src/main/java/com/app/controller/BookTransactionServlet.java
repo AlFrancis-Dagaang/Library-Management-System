@@ -89,6 +89,10 @@ public class BookTransactionServlet extends HttpServlet {
                 int transactionId = Integer.parseInt(paths[1]);
                 BookAgreement agreement = this.bookTransactionService.getBookAgreementByTransactionId(transactionId);
                 JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", agreement);
+            } else if (paths.length==4 && PathUtil.isNumeric(paths[2]) && paths[1].equals("bill")&& paths[3].equals("payment-transactions")) { //    /bills/{billId}/payment-transactions
+                int bookTransactionId = Integer.parseInt(paths[2]);
+                List<PaymentTransaction> allPaymentTransactions = this.paymentTransactionService.getAllPaymentTransactions(bookTransactionId);
+                JsonUtil.writeOk(response, HttpServletResponse.SC_OK,"Success", allPaymentTransactions);
             }
         }catch (IllegalArgumentException e){
             JsonUtil.writeError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());

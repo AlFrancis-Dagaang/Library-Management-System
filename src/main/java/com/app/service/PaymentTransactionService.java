@@ -3,12 +3,14 @@ package com.app.service;
 import com.app.dao.BookReturnBillDAO;
 import com.app.dao.BookReturnDAO;
 import com.app.dao.PaymentTransactionDAO;
+import com.app.exception.ResourceNotFound;
 import com.app.model.BookReturnBill;
 import com.app.model.BookReturnStatus;
 import com.app.model.PaymentTransaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class PaymentTransactionService {
     private PaymentTransactionDAO paymentTransactionDAO;
@@ -78,5 +80,15 @@ public class PaymentTransactionService {
             }
         }
         throw new RuntimeException("The Bill didnt exist in the database or status not determined");
+    }
+
+    public List<PaymentTransaction> getAllPaymentTransactions(int billId) {
+        List<PaymentTransaction> allPaymentTransactions = this.paymentTransactionDAO.getPaymentTransactionsByBillId(billId);
+
+        if(allPaymentTransactions == null){
+            throw new ResourceNotFound("The bill is empty");
+        }
+
+        return allPaymentTransactions;
     }
 }

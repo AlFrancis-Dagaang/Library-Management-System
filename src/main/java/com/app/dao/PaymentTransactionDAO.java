@@ -7,6 +7,9 @@ import com.app.util.LocalDateUtil;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class PaymentTransactionDAO {
     private DBConnection dbConnection;
@@ -66,5 +69,31 @@ public class PaymentTransactionDAO {
             throw new RuntimeException("SQLException caught in getPaymentTransactionById: " + e.getMessage());
         }
         return null;
+    }
+
+    public List<PaymentTransaction> getPaymentTransactionsByBillId(int billId) {
+        String sql = "SELECT * FROM payment_transactions WHERE bill_id = ?";
+        List<PaymentTransaction> paymentTransactions = new ArrayList<PaymentTransaction>();
+        try(Connection con = this.dbConnection.getConnection()){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, billId);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                int id = rs.getInt("payment_id");
+                int billID = rs.getInt("bill_id");
+                String transactionType = rs.getString("transaction_type");
+                BigDecimal amount = rs.getBigDecimal("amount");
+                String status = rs.getString("status");
+                String paymentMethod = rs.getString("payment_method");
+                LocalDate paymentDate = LocalDateUtil.getNullableLocalDate(rs, "payment_date");
+
+                paymentTransactions.add(new PaymentTransaction(id, billID, transactionType, amount, status, paymentMethod, paymentDate));
+            }
+
+            return paymentTransactions;
+        }catch (SQLException e){
+            System.err.println("SQLException caught in getPaymentTransactionsByBillId: " + e.getMessage());
+            throw new RuntimeException("SQLException caught in getPaymentTransactionsByBillId: " + e.getMessage());
+        }
     }
 }
